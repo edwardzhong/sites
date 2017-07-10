@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+<title>web app sample</title>
+<script>
+!(function(win, doc){
+	var docEle=doc.documentElement,
+	    evt = 'onorientationchange' in win ? 'orientationchange' : 'resize',
+    	timer = null;
+
+    function setFontSize() {
+        var winWidth =  win.innerWidth||docEle.clientWidth||doc.body.clientWidth,
+        	size = (winWidth>640?640:winWidth) / 640 * 100;
+        docEle.style.fontSize = size + 'px' ;
+    }
+  
+    win.addEventListener(evt, function () {
+        clearTimeout(timer);
+        timer = setTimeout(setFontSize, 300);
+    }, false);
+    
+    win.addEventListener("pageshow", function(e) {
+        if (e.persisted) {
+            clearTimeout(timer);
+            timer = setTimeout(setFontSize, 300);
+        }
+    }, false);
+    setFontSize();
+}(window, document));
+</script>
+<link rel="stylesheet" href="./dist/css/pure-min.css">
+<link rel="stylesheet" href="./dist/css/main.min.css">
+<!-- <link rel="stylesheet" href="./css/app.css">
+<link rel="stylesheet" href="./css/loading.css">
+<link rel="stylesheet" href="./css/index.css"> -->
+</head>
+<body>
+<div id="app" class="view-wrap"></div>
+<div id="loading" class="loading-wrap">
+    <div class="loading">
+        <div class="round"></div>
+        <div class="txt">0%</div>
+    </div>
+</div>
+<div id="freshing" class="fresh-wrap">
+    <div class="loading">
+        <div class="round"></div>
+        <p class="txt">loading...</p>
+    </div>
+</div>
+<script id="tempIndex" type="text/html">
+    <header class="header">index</header>
+    <div class="header-pos"></div>
+    <div class="pure-menu">
+    <ul class="pure-menu-list">
+        <li class="pure-menu-item"><a class="pure-menu-link" href="javascript:;" data-hash="/button">button</a></li>
+        <li class="pure-menu-item"><a class="pure-menu-link" href="javascript:;" data-hash="/dialog">dialog</a></li>
+        <li class="pure-menu-item"><a class="pure-menu-link" href="javascript:;" data-hash="/form">form</a></li>
+    </ul>  
+    </div>
+</script>
+<script id="tempButton" type="text/html">
+    <header class="header">button</header>
+    <div class="header-pos"></div>
+    <div class="content">
+        <a class="pure-button" href="javascript:;">Pure default Button</a>
+        <a class="pure-button pure-button-active" href="javascript:;">Pure active Button</a>
+        <button class="pure-button pure-button-disabled">Pure disabled Button</button>  
+        <button class="pure-button pure-button-primary"> Pure primary Button</button>  
+        <button class="pure-button button-success"> success Button</button>  
+        <button class="pure-button button-error"> error Button</button>  
+        <button class="pure-button button-warning"> warning Button</button>  
+        <button class="pure-button button-secondary"> secondary Button</button>  
+    </div>
+</script>
+<script id="tempDialog" type="text/html">
+    <header class="header">dialog</header>
+    <div class="header-pos"></div>
+    <div class="content">
+        <button data-tag="loading" class="pure-button pure-button-primary">loading</button>
+        <button data-tag="freshing" class="pure-button pure-button-primary">refresh</button>           
+    </div>
+</script>
+<script id="tempForm" type="text/html">
+    <header class="header">form</header>
+    <div class="header-pos"></div>
+    <div class="form-wrap">
+        <form class="pure-form">
+            <fieldset>
+                <legend>一个简单的单行表单</legend>
+                <input type="email" placeholder="Email">
+                <input type="password" placeholder="Password">
+                <label for="remember">
+                    <input id="remember" type="checkbox"> 记住我
+                </label>
+                <button type="submit" class="pure-button pure-button-primary">登录</button>
+            </fieldset>
+        </form>
+        <h2>input分组</h2>
+        <form class="pure-form">
+            <fieldset class="pure-group">
+                <input type="text" class="pure-input-1-2" placeholder="Username">
+                <input type="text" class="pure-input-1-2" placeholder="Password">
+                <input type="email" class="pure-input-1-2" placeholder="Email">
+            </fieldset>
+
+            <fieldset class="pure-group">
+                <input type="text" class="pure-input-1-2" placeholder="A title">
+                <textarea class="pure-input-1-2" placeholder="Textareas work too"></textarea>
+            </fieldset>
+            <button type="submit" class="pure-button pure-input-1-2 pure-button-primary">Sign in</button>
+        </form>
+        <h2>对齐式</h2>
+        <form class="pure-form pure-form-aligned">
+            <fieldset>
+                <div class="pure-control-group">
+                    <label for="name">Username</label>
+                    <input id="name" type="text" placeholder="Username">
+                </div>
+
+                <div class="pure-control-group">
+                    <label for="password">Password</label>
+                    <input id="password" type="password" placeholder="Password">
+                </div>
+
+                <div class="pure-control-group">
+                    <label for="email">Email Address</label>
+                    <input id="email" type="email" placeholder="Email Address">
+                </div>
+
+                <div class="pure-control-group">
+                    <label for="foo">Supercalifragilistic Label</label>
+                    <input id="foo" type="text" placeholder="Enter something here...">
+                </div>
+
+                <div class="pure-controls">
+                    <label for="cb" class="pure-checkbox">
+                        <input id="cb" type="checkbox"> I've read the terms and conditions
+                    </label>
+
+                    <button type="submit" class="pure-button pure-button-primary">Submit</button>
+                </div>
+            </fieldset>
+        </form>
+        <h2>表格</h2>
+        <table class="pure-table pure-table-bordered">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Make</th>
+                    <th>Model</th>
+                    <th>Year</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                <tr>
+                    <td>1</td>
+                    <td>Honda</td>
+                    <td>Accord</td>
+                    <td>2009</td>
+                </tr>
+
+                <tr>
+                    <td>2</td>
+                    <td>Toyota</td>
+                    <td>Camry</td>
+                    <td>2012</td>
+                </tr>
+
+                <tr>
+                    <td>3</td>
+                    <td>Hyundai</td>
+                    <td>Elantra</td>
+                    <td>2010</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</script>
+<script>
+function loadPercent(percent){
+    var wrap=document.getElementById('loading'),
+        txt=wrap.getElementsByClassName('txt')[0];
+        
+    if(wrap.style.display=='none'){return;}
+    percent=percent<0?0:percent>100?100:percent;
+    txt.innerHTML = percent+'%';
+    if(percent==100){
+        wrap.style.display='none';
+    }
+}
+loadPercent(30);
+</script>
+<script src="./dist/js/lib.min.js"></script>
+<script src="./dist/js/index.min.js"></script>
+<!-- <script src="./js/app.js"></script> -->
+<!-- <script src="./js/index.js"></script> -->
+</body>
+</html>
