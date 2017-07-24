@@ -1,0 +1,127 @@
+html, body {
+	margin: 0;
+	padding: 0;
+	width: 100%;
+	height: 100%;
+	font-family: "Helvetica Neue", Helvetica, "Hiragino Sans GB", "Microsoft YaHei", Arial, sans-serif;
+	color: #555;
+	font-size: 16px;
+	-webkit-user-select: none;
+	-moz-user-select: none;
+	-o-user-select: none;
+	-ms-user-select: none;
+	user-select: none;
+	font-size-adjust: 100% !important;
+}
+i, em, b {
+	font-style: normal;
+}
+img {
+	vertical-align: top;
+	border:0;
+}
+input, textarea {
+	-webkit-appearance: none;
+	-moz-appearance: none;
+	-ms-appearance: none;
+	appearance: none;
+	outline: none;
+	resize: none;
+}
+a, a:active, a:visited {
+	text-decoration: none;
+}
+ul{
+	list-style: none;
+	margin: 0;
+	padding: 0;
+}
+* {
+	-webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+}
+.clear {
+	clear: both;
+	width: 0;
+	height: 0;
+	overflow: hidden;
+}
+.fl{
+	float: left;
+}
+.fr{
+	float: right;
+}
+
+.app{
+	width: 400px;
+	margin: 20px auto;
+}
+input[type="text"]{
+	width: 240px;
+	margin: 2px 0;
+	padding: 5px;
+	display: inline-block;
+	border: 1px solid #ccc;
+	box-shadow: inset 0 1px 3px #ddd;
+	border-radius: 4px;
+	vertical-align: middle;
+	box-sizing: border-box;
+}
+
+input[type="text"]:focus{
+	outline: 0;
+    border-color: #129FEA;
+}
+
+button{
+	display: inline-block;
+    vertical-align: middle;
+    text-align: center;
+    cursor: pointer;
+    -webkit-user-drag: none;
+    user-select: none;
+    box-sizing: border-box;
+    padding: 6px 20px;
+    border: none hsla(0, 0%, 0%, 0);
+    border-radius: 4px;
+    background-color: hsl(209, 100%, 45%);
+    color: hsl(0, 0%, 100%);
+    outline: none;
+}
+
+
+h1{
+	text-align: center;
+}
+ul{
+	margin: 10px 0;
+	overflow: hidden;
+	border:1px solid #ddd;
+	border-radius: 4px;
+}
+li{
+	position: relative;
+	display: block;
+	height: 100%;
+	border-top: 1px solid #ddd;
+	margin-top: -1px;
+}
+li:hover{
+	background-color: #eee;
+}
+li h2{
+	font-weight: normal;
+	font-size: 20px;
+	padding-left: 30px;
+}
+li p{
+	font-size: 14px;
+	color: #aaa;
+	padding-left: 30px;
+}
+li a{
+	position: absolute;
+	top: 30px;
+	right: 20px;
+	color: hsl(0, 86%, 43%);
+}

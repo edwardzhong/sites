@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+<title>cosmic vue demo</title>
+<link rel="stylesheet" href="./css/style.css">
+</head>
+<body>
+<div class="app">
+<h1>cosmic vue demo</h1>
+<div id="app">
+	<add-component></add-component>
+	<list-component></list-component>
+</div>
+</div>
+<template id="addTpl">
+	<div>
+		<input type="text" v-model="title" placeholder="title" maxlength="20"><br>
+		<input type="text" v-model="comment" placeholder="comment" maxlength="100">
+		<button @click="add">add item</button>
+	</div>
+</template>
+<template id="listTpl">
+	<ul @click.stop="handleDelete">
+		<template v-for="item in list">
+		<li>
+			<h2>{{ item.title }}</h2>
+			<p>{{ item.metadata.comment }}</p>
+			<a v-bind:id="item._id" href="javascript:;">remove</a>
+		</li>
+		</template>
+	</ul>
+</template>	
+<script src="./lib/jquery-2.2.3.min.js"></script>
+<script src="./lib/vue.min.js"></script>
+<script src="./lib/vuex.js"></script>
+<script src="./lib/cosmicjs.browser.min.js"></script>
+<script src="./app.js"></script>
+</body>
+</html>
