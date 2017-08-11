@@ -1,11 +1,3 @@
-webapp/css
-webapp/less
-webapp/js
-webapp/lib
-webapp/node_modules
-webapp/gulpfile.js
-webapp/package.json
-
 movie/node_modules
 movie/js
 movie/src
