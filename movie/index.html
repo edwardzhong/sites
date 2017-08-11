@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+<title>firebase douban movie</title>
+<script>
+!(function(win, doc){
+	var docEle=doc.documentElement,
+	    evt = 'onorientationchange' in win ? 'orientationchange' : 'resize',
+    	timer = null;
+
+    function setFontSize() {
+        var winWidth =  win.innerWidth||docEle.clientWidth||doc.body.clientWidth,
+        	size = (winWidth>640?640:winWidth) / 640 * 100;
+        docEle.style.fontSize = size + 'px' ;
+    }
+  
+    win.addEventListener(evt, function () {
+        clearTimeout(timer);
+        timer = setTimeout(setFontSize, 300);
+    }, false);
+    
+    win.addEventListener("pageshow", function(e) {
+        if (e.persisted) {
+            clearTimeout(timer);
+            timer = setTimeout(setFontSize, 300);
+        }
+    }, false);
+    setFontSize();
+}(window, document));
+</script>
+<link rel="stylesheet" href="./css/fontello-embedded.css">
+<link rel="stylesheet" href="./css/animation.css">
+<link href="css/main.css" rel="stylesheet"></head>
+<body>
+<h1 class="main-title"> Douban Movie </h1>
+
+<div class="app" id="app"></div>
+<footer>
+    All content copyright <a href="https://github.com/edwardzhong/">Jeff Zhong</a><br>&copy; 2017. All rights reserved
+</footer>
+<div class="overlay"><i class="icon-spin4 animate-spin"></i></div>
+<script type="text/javascript" src="js/vendor.bundle.256f0ac6ec9d196d87a0.js"></script><script type="text/javascript" src="js/app.bundle.256f0ac6ec9d196d87a0.js"></script></body>
+</html>
