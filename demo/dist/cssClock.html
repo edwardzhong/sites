@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+<title>CSS3时钟</title>
+<link rel="stylesheet" href="../../css/pure-min.css">
+<link rel="stylesheet" href="../../css/fontello.css">
+<link rel="stylesheet" href="../css/style.css">
+
+<style>
+	.container{
+		position: relative;
+		width: 300px;
+		height: 300px;
+		border-radius: 50%;
+		margin: 0 auto;
+		border:1px solid #ddd;
+		background-color: #eee;
+		box-shadow: 1px 1px 4px #ccc;
+	}
+	.center{
+		position: absolute;
+		top: 142px;left: 142px;
+		width: 16px;height: 16px;border-radius: 50%;
+		background-color: #bbb;
+	}
+	.mark{
+		position: absolute;
+		top: 0;left: 148px;
+		width: 4px;height: 10px;
+		background-color: #999;
+		transform-origin:2px 150px;
+		transform:rotate(0deg);
+	}
+	.mark i{
+		position: absolute;
+		width: 22px;height: 20px;
+		top: 20px;left: -10px;
+		text-align: center;
+		font-style: normal;
+		font-weight: bold;
+		color:#0aa;
+		font-size: 20px;
+	}
+	.hour{
+		position: absolute;
+		top: 70px;left: 146px;
+		width: 8px;height: 82px;
+		background-color: #999;
+		border-radius: 8px;
+		transform-origin:4px 80px;
+		transform:rotate(0deg);
+	}
+	.min{
+		position: absolute;
+		top: 50px;left: 147px;
+		width: 6px;height: 102px;
+		background-color: #666;
+		border-radius: 6px;
+		transform-origin:3px 100px;
+		transform:rotate(0deg);
+	}
+	.sec{
+		position: absolute;
+		top: 18px;left: 149px;
+		width: 2px;height: 150px;
+		background-color: #b23;
+		border-radius: 2px;
+		transform-origin:1px 132px;
+		transform:rotate(0deg);
+	}
+</style>
+
+<!--[if lt IE 9]>
+<script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+<![endif]-->
+</head>
+<body>
+	<div class="content">
+		<a class="github" href="https://github.com/edwardzhong">
+			<img src="../img/github.png" alt="">
+		</a>
+		<header class="header">
+			<h1><a href="../index.html">Jeff Zhong's Demo</a></h1>
+		</header>
+		<div class="main grid"> 
+<h2>CSS3时钟</h2>
+<div class="container">
+	<div class="center"></div>
+	<div class="hour"></div>
+	<div class="min"></div>
+	<div class="sec"></div>
+</div>
+ </div>
+		<footer class="footer">
+			<p>All content copyright <a href="https://github.com/edwardzhong">Jeff Zhong</a>&nbsp;&nbsp;&copy; 2017. All rights reserved.</p>
+		</footer>
+	</div>
+<script src="../../js/jquery-2.2.3.min.js"></script>
+
+<script>
+	$(function(){
+		var clock=$('.container'),
+			hour=$('.hour'),
+			min=$('.min'),
+			sec=$('.sec'),
+			i,mark,num,timer=null,
+			date,hours=0,mins=0,secs=0;
+		//初始化，画表盘
+		function init(){
+			for(i=0;i<60;i++){
+				mark=$('<div>',{class:'mark'}).css('transform','rotate('+i*6+'deg)');
+				if(i%5===0){
+					mark.css({'height':'18px','backgroundColor':'#666'});
+					num=i/5===0?12:i/5;
+					mark.append('<i>'+num+'</i>');
+				}
+				clock.append(mark);
+			}
+			setTime();
+		}
+		//设置时间
+		function setTime(){
+			date=new Date();
+			hours=date.getHours()%12;
+			mins=date.getMinutes();
+			secs=date.getSeconds();
+			halfHours=Math.floor(mins/12);
+			hour.css('transform','rotate('+(hours*30+halfHours*6)+'deg)');
+			min.css('transform','rotate('+mins*6+'deg)');
+			sec.css('transform','rotate('+secs*6+'deg)');
+		}
+		//定时器启动
+		function start(){
+			timer=setInterval(setTime,1000);
+		}
+		init();
+		start();
+	});
+</script>
+
+</body>
+</html>
