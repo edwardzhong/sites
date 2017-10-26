@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+<title>手机版触控焦点图</title>
+<link rel="stylesheet" href="../../css/pure-min.css">
+<link rel="stylesheet" href="../../css/fontello.css">
+<link rel="stylesheet" href="../css/style.css">
+
+<style>
+	.container{
+        position: relative;
+        width: 360px;
+        height: 240px;
+		margin: 0 auto;
+		overflow: hidden;
+	}
+    ul{
+        list-style: none;
+        margin: 0;
+    }
+    .pages{
+        width: 100%;
+        height: 100%;
+	}
+	.pages li{
+        display: none;
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+	}
+    .pages img{
+        width: 100%;
+        height: 100%;
+    }
+    .ctrl{
+        position: absolute;
+        left: 50%;
+        transform: translateX(-50%);
+        bottom: 10px;
+    }
+    .ctrl li{
+        float: left;
+        width: 20px;
+        height: 20px;
+        margin: 5px;
+        border-radius: 50%;
+        background-color: rgba(0, 0, 0, .7);
+    }
+    .ctrl li.active{
+        background-color: #00acee;
+    }
+    .restore{-webkit-transition:-webkit-transform .2s linear;}
+    .moving{-webkit-transition:-webkit-transform .2s linear;}
+</style>
+
+<!--[if lt IE 9]>
+<script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+<![endif]-->
+</head>
+<body>
+	<div class="content">
+		<a class="github" href="https://github.com/edwardzhong">
+			<img src="../img/github.png" alt="">
+		</a>
+		<header class="header">
+			<h1><a href="../index.html">Jeff Zhong's Demo</a></h1>
+		</header>
+		<div class="main grid"> 
+<h2>手机版触控焦点图</h2>
+<div class="container">
+	<ul class="pages clearfix">
+        <li><img src="http://oncse3u6r.bkt.clouddn.com/abcghandrukm13.JPG" /></li>
+        <li><img src="http://oncse3u6r.bkt.clouddn.com/abcananpu.JPG" /></li>
+        <li><img src="http://oncse3u6r.bkt.clouddn.com/abcfishtail3.JPG" /></li>
+        <li><img src="http://oncse3u6r.bkt.clouddn.com/abcfishtailr9.JPG" /></li>
+        <li><img src="http://oncse3u6r.bkt.clouddn.com/abcfishtailr16.JPG" /></li>
+        <li><img src="http://oncse3u6r.bkt.clouddn.com/abcstar3.JPG" /></li>
+    </ul>
+    <ul class="ctrl">
+        <li class="active"></li>
+        <li></li>
+        <li></li>
+        <li></li>
+        <li></li>
+        <li></li>
+    </ul>
+</div>
+ </div>
+		<footer class="footer">
+			<p>All content copyright <a href="https://github.com/edwardzhong">Jeff Zhong</a>&nbsp;&nbsp;&copy; 2017. All rights reserved.</p>
+		</footer>
+	</div>
+
+<script src="../../js/Zepto.js"></script>
+<script>
+    /**
+     * 返回浏览器特有css前缀
+     */
+    var webkit=function(){
+        var css3_div=document.createElement("div");
+        css3_div.style.cssText='-webkit-transition:all .1s; -moz-transition:all .1s; -o-transition:all .1s; -ms-transition:all .1s; transition:all .1s;';
+        if(css3_div.style.webkitTransition){
+            return '-webkit-';
+        }else if(css3_div.style.MozTransition){
+            return '-moz-';
+        }else if(css3_div.style.oTransition){
+            return '-o-';
+        }else if(css3_div.style.msTransition){
+            return '-ms-';
+        }else{
+            return '';
+        }
+    }();
+
+    /**
+     * 左右循环滑动
+     * @Author   jeffzhong(p_jdjfzhong)
+     * @DateTime 2016-07-12T13:59:53+0800
+     */
+    function touchSlide(){
+        var container=$('.container'),
+            lis=container.find('.pages li'),
+            navs=container.find('.ctrl li'),
+            len=lis.length,curr=0,prev=-1,next=1,act=0,
+            isLock=false,startX=0,offset=0,timer;
+        lis=[].slice.call(lis);
+        var _touchStart=function(e){
+            clearInterval(timer);
+            if(isLock){return;}
+            var touchers=e.changedTouches||e.targetTouches;
+            startX=touchers[0].pageX;
+            container.on('touchmove',_touchMove);
+        },
+        _touchMove=function(e){
+            if(isLock){return;}
+            var touchers=e.changedTouches||e.targetTouches,
+                endX=touchers[0].pageX;
+            offset=endX-startX;
+            container.on('touchend',_touchRelease);
+            container.on('touchcancel',_touchRelease);
+            e.stopPropagation(); 
+            if(offset>0){
+                act=prev<0?len-1:prev;
+            } else if(offset<0){
+                act=next>=len?0:next;
+            }
+            lis[act].style.cssText='display:block;left:'+(offset<0?'':'-')+'100%;';
+            lis[curr].style[webkit+'transform']=lis[act].style[webkit+'transform']='translate3d('+offset+'px,0,0)';
+        },
+        _touchRelease=function(e){
+            if(isLock){return;}
+            isLock=true;
+            if(Math.abs(offset)<100){//小于100重置
+                $(lis[curr]).addClass('restore');
+                $(lis[act]).addClass('restore');
+                lis[curr].style[webkit+'transform']=lis[act].style[webkit+'transform']='translate3d(0,0,0)';
+                setTimeout(function() {
+                    $(lis[curr]).removeClass('restore');
+                    $(lis[act]).removeClass('restore');
+                    lis[act].style.display='none';
+                    offset=0;isLock=false;
+                    _autoPlay();
+                }, 310);
+            } else {//进行切换
+                $(lis[curr]).addClass('moving');
+                $(lis[act]).addClass('moving');
+                lis[curr].style[webkit+'transform']=lis[act].style[webkit+'transform']='translate3d('+(offset<0?'-':'')+'100%,0,0)';
+                setTimeout(function() {
+                    $(lis[curr]).removeClass('moving');
+                    $(lis[act]).removeClass('moving');
+                    lis[curr].style.cssText='display:none;left:0;';
+                    lis[curr].style[webkit+'transform']=lis[act].style[webkit+'transform']='translate3d(0,0,0)';
+                    lis[act].style.left=0;
+                    curr=act;prev=curr-1;next=curr+1;
+                    offset=0;isLock=false;
+                    navs.eq(curr).addClass('active').siblings().removeClass('active');//底部导航点位置
+                    _autoPlay();
+                }, 210);
+            }
+            container.off('touchmove',_touchMove);
+            container.off('touchend',_touchRelease);
+            container.off('touchcancel',_touchRelease);
+        },
+        _next=function(){
+            act=next>=len?0:next;
+            lis[act].style.cssText='display:block;left:100%;';
+            lis[curr].style[webkit+'transform']=lis[act].style[webkit+'transform']='translate3d(0,0,0)';
+            setTimeout(function() {
+                $(lis[curr]).addClass('moving');
+                $(lis[act]).addClass('moving');
+                lis[curr].style[webkit+'transform']=lis[act].style[webkit+'transform']='translate3d(-100%,0,0)';
+                setTimeout(function() {
+                    $(lis[curr]).removeClass('moving');
+                    $(lis[act]).removeClass('moving');
+                    lis[curr].style.cssText='display:none;left:0;';
+                    lis[curr].style[webkit+'transform']=lis[act].style[webkit+'transform']='translate3d(0,0,0)';
+                    lis[act].style.left=0;
+                    curr=act;prev=curr-1;next=curr+1;
+                    offset=0;isLock=false;
+                    navs.eq(curr).addClass('active').siblings().removeClass('active');//底部导航点位置
+                }, 210);
+            }, 200);
+        },
+        _autoPlay=function(){
+            timer= setInterval(_next,3000);
+        };
+        lis[0].style.display='block';
+        if(len>1){
+            container.on('touchstart',_touchStart);
+            _autoPlay();
+        }
+    }
+
+    touchSlide();
+</script>
+
+</body>
+</html>
