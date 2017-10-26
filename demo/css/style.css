@@ -9,15 +9,24 @@ html,body{
 }
 
 a {
-    color: #517891;
-    text-decoration: none;
+  color: #517891;
+  text-decoration: none;
 }
 ul{
-    list-style: none;
-    padding: 0;
-    margin: 0;
+  list-style: none;
+  padding: 0;
+  margin: 0;
 }
-
+.page-list{
+    display: block;
+    font-size: 18px;
+    color:hsla(200,100%,50%,1);
+    line-height: 2;
+    text-align: left;
+}
+.page-list:hover{
+  color:hsla(200,100%,40%,1);
+}
 .content{
   position: relative;
   height: 100%;
@@ -27,57 +36,60 @@ ul{
 }
 
 .github{
-	position: absolute; 
+    position: absolute; 
     top: 0; 
     right: 0; 
     border: 0;
 }
 .header{
-    padding: 1px;
-	background-color: #517891;
-	color: #fff;
-	text-align: center;
-    letter-spacing: 2px;
+  padding: 1px;
+  background-color: #517891;
+  color: #fff;
+  text-align: center;
+  letter-spacing: 2px;
 }
 .header a{
-    color: inherit;
+  color: inherit;
 }
 .header h1{
-    font-weight: normal;
-    font-size: 24px;
-    margin: 10px 0;
+  font-weight: normal;
+  font-size: 24px;
+  margin: 10px 0;
 }
 .main{
-    height: calc(100% - 95px);
-    overflow-y: auto;
-    text-align: center;
+  height: calc(100% - 95px);
+  overflow-y: auto;
+  overflow-x: auto;
+  text-align: center;
 }
-
+.title{
+  text-align: left;
+}
 .post-list{
-    margin-top: 20px;
+
 }
 .post-list a{
-    display: block;
-    padding: 15px;
-    border:1px solid #ddd;
-    border-top-width:0;
-    background-color: #fff;
-    text-align: left;
+  display: block;
+  padding: 15px;
+  border:1px solid #ddd;
+  border-top-width:0;
+  background-color: #fff;
+  text-align: left;
 }
 .post-list a:hover{
-    color:#52a1e6;
-    border-bottom-color: #52a1e6;
+  color:#52a1e6;
+  border-bottom-color: #52a1e6;
 }
 .post-list li:first-child a{
-    border-top-width: 1px;
-    border-radius: 4px 4px 0 0;
+  border-top-width: 1px;
+  border-radius: 4px 4px 0 0;
 }
 .post-list li:last-child a{
-    border-radius: 0 0 4px 4px;
+  border-radius: 0 0 4px 4px;
 }
 .post-list time{
-    color:#aaa;
-    float: right;
+  color:#aaa;
+  float: right;
 }
 .footer{
   position: absolute;
