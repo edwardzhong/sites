@@ -51,10 +51,7 @@ class Particle {
         this.radius = 10+Math.random()*10;
         this.life = 10+Math.random()*10;
         this.remaining_life = this.life;
-        this.color = {};
-        this.color.r=Math.floor(Math.random()*255);
-        this.color.g=Math.floor(Math.random()*55);
-        this.color.b=Math.floor(Math.random()*55);
+        this.color = 30;
     }
 }
 
@@ -73,9 +70,9 @@ function draw() {
         ctx.beginPath();
         p.opacity = Math.round(p.remaining_life/ p.life*100)/100;
         var gradient = ctx.createRadialGradient(p.loc.x, p.loc.y, 0, p.loc.x, p.loc.y, p.radius);
-        gradient.addColorStop(0, "rgba(" + p.color.r + "," + p.color.g + "," + p.color.b + "," + p.opacity + ")" );
-        gradient.addColorStop(0.5, "rgba(" + p.color.r + "," + p.color.g + "," + p.color.b + "," + p.opacity + ")" );
-        gradient.addColorStop(1, "rgba(" + p.color.r + "," + p.color.g + "," + p.color.b + ", 0)" );
+        gradient.addColorStop(0,`hsla(${p.color},100%,70%,${p.opacity})`);
+        gradient.addColorStop(0.5,`hsla(${p.color},100%,50%,${p.opacity})`);
+        gradient.addColorStop(1,`hsla(${p.color},100%,30%,0)`);
 
         ctx.fillStyle = gradient;
         ctx.arc(p.loc.x, p.loc.y, p.radius, 0, Math.PI*2, false);

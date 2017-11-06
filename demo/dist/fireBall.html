@@ -64,21 +64,6 @@
                 this.vy=-this.vy;
             }
             this.y+=this.vy;
-            
-            // var angle=Math.atan(this.vx/this.vy);
-            // if(this.vx==0||this.vx==0&&this.vy==0){
-            //  this.angle=this.vy>=0?0:Math.PI;
-            // } else if(this.vy==0){
-            //  this.angle=this.vx>0?-Math.PI/2:Math.PI/2;  
-            // } else if(this.vy>0){
-            //  this.angle=-angle;
-            // } else {
-            //  this.angle=Math.PI-angle;
-            // }
-            // 反正切:atan(y/x)=弧度; 正切:tan(y/x)*x=y边的长度 
-            // atan2(y,x)使用范围更广: PI ~ -PI,可以处理除数和被除数为0的情况，即90度和270的情况
-            // var angle=-Math.atan2(this.vy,this.vx);
-            // this.angle=Math.PI+(Math.PI/2-angle)
             this.angle=-Math.atan2(this.vx,this.vy);
         }
         draw(ctx){
