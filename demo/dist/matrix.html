@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+<title>黑客帝国</title>
+<link rel="stylesheet" href="../../css/pure-min.css">
+<link rel="stylesheet" href="../../css/fontello.css">
+<link rel="stylesheet" href="../css/style.css">
+
+
+<!--[if lt IE 9]>
+<script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+<![endif]-->
+</head>
+<body>
+	<div class="content">
+		<a class="github" href="https://github.com/edwardzhong">
+			<img src="../img/github.png" alt="">
+		</a>
+		<header class="header">
+			<h1><a href="../index.html">Jeff Zhong's Demo</a></h1>
+		</header>
+		<div class="main grid">
+		<a class="page-list" href="../index.html">&larr;&nbsp;page list</a>
+		
+<h2>黑客帝国</h2>
+<canvas id="canvas" width="600" height="400"></canvas>
+ </div>
+		<footer class="footer">
+			<p>All content copyright <a href="https://github.com/edwardzhong">Jeff Zhong</a>&nbsp;&nbsp;&copy; 2017. All rights reserved.</p>
+		</footer>
+	</div>
+
+<script>
+    var canvas=document.getElementById('canvas'),
+        ctx=canvas.getContext('2d'),
+        W=document.documentElement.clientWidth||document.body.clientWidth,
+        H=document.documentElement.clientHeight||document.body.clientHeight,
+        TW=30,
+        TH=24,
+        xl=Math.floor(W/TW),
+        yl=Math.floor(H/TH),
+        x=0, y=0,
+        arr=new Array(xl).join(0).split(''),
+        text='';
+
+    canvas.width=W;
+    canvas.height=H;
+    ctx.textAlign='left';
+    ctx.textBaseLine='bottom';
+    ctx.font='20px verdana';
+    ctx.fillStyle = 'hsla(0,0%,0%,.1)';
+    // ctx.globalCompositeOperation = "source-over";
+    
+    function draw() {
+        ctx.fillRect(0, 0, W, H);
+        ctx.save();
+        ctx.translate(20,30);
+        ctx.fillStyle='hsla(120,100%,50%,1)';
+        // ctx.globalCompositeOperation = "lighter";
+        for(i = 0; i < xl; i++) {
+            text = String.fromCharCode(48 + Math.random() * 79);
+            x = i * TW;          
+            y = arr[i];
+            ctx.fillText(text, x, y);
+            if(y>H||y > (Math.random() * H*4)+H/4) {
+                arr[i] = 0;
+            } else {
+                arr[i] = + parseInt(arr[i]) + TH;
+            }
+        }
+        ctx.restore();
+    }
+
+    (function(){
+        setInterval(draw, 60);
+    })();
+</script>
+
+</body>
+</html>
