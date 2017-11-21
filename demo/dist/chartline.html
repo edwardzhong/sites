@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+<title>折线图</title>
+<link rel="stylesheet" href="../../css/pure-min.css">
+<link rel="stylesheet" href="../../css/fontello.css">
+<link rel="stylesheet" href="../css/style.css">
+
+<style>
+    p{margin: 0;}
+</style>
+
+<!--[if lt IE 9]>
+<script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+<![endif]-->
+</head>
+<body>
+	<div class="content">
+		<a class="github" href="https://github.com/edwardzhong">
+			<img src="../img/github.png" alt="">
+		</a>
+		<header class="header">
+			<h1><a href="../index.html">Jeff Zhong's Demo</a></h1>
+		</header>
+		<div class="main grid">
+		<a class="page-list" href="../index.html">&larr;&nbsp;page list</a>
+		
+<h2>折线图</h2>
+<p>点击上面的颜色标签试试</p>
+<div id="container"></div>
+ </div>
+		<footer class="footer">
+			<p>All content copyright <a href="https://github.com/edwardzhong">Jeff Zhong</a>&nbsp;&nbsp;&copy; 2017. All rights reserved.</p>
+		</footer>
+	</div>
+
+<script src="../../js/chart.js"></script>
+<script>
+var con=document.getElementById('container');
+var line = new Line(con);
+line.init({
+    title:'未来一周气温变化',
+    xAxis:{
+        data:['周一','周二','周三','周四','周五','周六','周日']
+    },
+    yAxis:{
+        name:'温度',
+        formatter:'{value} °C'
+    },
+    series:[
+        {
+            name:'最高气温',
+            data:[11, 11, 15, 13, 12, 13, 10]
+        },
+        {
+            name:'最低气温',
+            data:[1, -2, 2, 5, 3, 2, 0]
+        }   
+    ]
+})
+</script>
+
+</body>
+</html>
