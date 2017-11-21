@@ -101,3 +101,7 @@ ul{
   background-color: #fff;
   z-index: 1;
 }
+
+canvas{
+  background: #fff;
+}
