@@ -2,6 +2,12 @@
  * canvas chart
  * author:jeff zhong
  */
+window.requestAnimationFrame=window.requestAnimationFrame 
+    || window.webkitRequestAnimationFrame 
+    || window.mozRequestAnimationFrame 
+    || window.oRequestAnimationFrame 
+    || window.msRequestAnimationFrame 
+    || function(callback) {return window.setTimeout(callback, 1000/60); };
 
 function roundRect(ctx,x,y,width,height,radius){
 	ctx.beginPath();
@@ -95,6 +101,20 @@ class Chart{
 		this.create();
 		this.bindEvent();
 	}
+	showInfo(pos,title,arr){
+		var box=this.canvas.getBoundingClientRect(),
+			con=this.container.getBoundingClientRect(),
+			html='',txt='';
+		html+='<p>'+title+'</p>';
+		arr.forEach(obj=>{
+			txt=this.yAxis.formatter?this.yAxis.formatter.replace('{value}',obj.num):obj.num;
+			html+='<p>'+obj.name+': '+txt+'</p>';
+		})
+		this.tip.innerHTML = html; 
+		this.tip.style.left=(pos.x+(box.left-con.left)+15)+'px';
+		this.tip.style.top=(pos.y+(box.top-con.top)+15)+'px';
+		this.tip.style.display='block';
+	}
 }
 /**
  * 柱状图
@@ -123,17 +143,14 @@ class Bar extends Chart{
 			// 分组标签
 			for(var i=0,item,len=that.legend.length;i<len;i++){
 				item=that.legend[i];
-				ctx.save();
 				roundRect(ctx,item.x,item.y,item.w,item.h,item.r);
 				// 因为缩小了一倍，所以坐标要*2
 				if(ctx.isPointInPath(pos.x*2,pos.y*2)){
 					canvas.style.cursor='pointer';
-					ctx.restore();
 					isLegend=true;
 					break;
 				}
 				canvas.style.cursor='default';
-				ctx.restore();
 			}
 
 			if(isLegend) return;
@@ -155,7 +172,7 @@ class Bar extends Chart{
 					if(item.hide)continue;
 					arr.push({name:item.name, num:item.data[index].num})
 				}
-				that.showInfo(pos,arr);
+				that.showInfo(pos,that.xAxis.data[index],arr);
 				ctx.restore();
 			} else {
 				that.tip.style.display='none';
@@ -182,19 +199,6 @@ class Bar extends Chart{
 			}
 
 		},false);
-	}
-	showInfo(pos,arr){
-		var box=this.canvas.getBoundingClientRect(),
-			con=this.container.getBoundingClientRect(),
-			html='',txt='';
-		arr.forEach(obj=>{
-			txt=this.yAxis.formatter?this.yAxis.formatter.replace('{value}',obj.num):obj.num;
-			html+='<p>'+obj.name+': '+txt+'</p>';
-		})
-		this.tip.innerHTML = html; 
-		this.tip.style.left=(pos.x+(box.left-con.left)+15)+'px';
-		this.tip.style.top=(pos.y+(box.top-con.top)+15)+'px';
-		this.tip.style.display='block';
 	}
 	clearGrid(index){
 		var that=this,
@@ -404,8 +408,8 @@ class Bar extends Chart{
 			paddingTop=this.paddingTop,
 			xl=0,xs=0;//x轴单位数，每个单位长度
 
-		ctx.fillStyle='hsla(0,0%,20%,1)';
-		ctx.strokeStyle='hsla(0,0%,10%,1)';
+		ctx.fillStyle='hsla(0,0%,30%,1)';
+		ctx.strokeStyle='hsla(0,0%,20%,1)';
 		ctx.lineWidth=1;
 		ctx.textAlign='center';
 		ctx.textBaseLine='middle';
@@ -597,7 +601,7 @@ class Line extends Chart{
 					if(item.hide)continue;
 					arr.push({name:item.name, num:item.data[index].num})
 				}
-				that.showInfo(pos,arr);
+				that.showInfo(pos,that.xAxis.data[index],arr);
 				ctx.restore();
 			} else {
 				that.tip.style.display='none';
@@ -624,19 +628,6 @@ class Line extends Chart{
 				}
 			}
 		},false);
-	}
-	showInfo(pos,arr){
-		var box=this.canvas.getBoundingClientRect(),
-			con=this.container.getBoundingClientRect(),
-			html='',txt='';
-		arr.forEach(obj=>{
-			txt=this.yAxis.formatter?this.yAxis.formatter.replace('{value}',obj.num):obj.num;
-			html+='<p>'+obj.name+': '+txt+'</p>';
-		})
-		this.tip.innerHTML = html; 
-		this.tip.style.left=(pos.x+(box.left-con.left)+15)+'px';
-		this.tip.style.top=(pos.y+(box.top-con.top)+15)+'px';
-		this.tip.style.display='block';
 	}
 	clearGrid(index){
 		var that=this,
@@ -749,12 +740,12 @@ class Line extends Chart{
 					for(var j=0,obj,jl=item.data.length;j<jl;j++){
 						obj=item.data[j];
 						if(obj.p>obj.h){
-							h=obj.y-5;
+							h=obj.y-4;
 							if(h<obj.h){
 								obj.y=obj.p=obj.h;
 							}
 						} else {
-							h=obj.y+5;
+							h=obj.y+4;
 							if(h>obj.h){
 								obj.y=obj.p=obj.h;
 							}
@@ -899,8 +890,8 @@ class Line extends Chart{
 			paddingTop=this.paddingTop,
 			xl=0,xs=0;//x轴单位数，每个单位长度
 
-		ctx.fillStyle='hsla(0,0%,20%,1)';
-		ctx.strokeStyle='hsla(0,0%,10%,1)';
+		ctx.fillStyle='hsla(0,0%,30%,1)';
+		ctx.strokeStyle='hsla(0,0%,20%,1)';
 		ctx.lineWidth=1;
 		ctx.textAlign='center';
 		ctx.textBaseLine='middle';
@@ -993,3 +984,301 @@ class Line extends Chart{
 	}
 
 }
+
+/**
+ * 饼图
+ */
+class Pie extends Chart{
+	constructor(container){
+		super(container);
+	}
+	bindEvent(){
+		var that=this,
+			canvas=that.canvas,
+			ctx=that.ctx;
+		if(!this.data.length) return;
+		this.canvas.addEventListener('mousemove',function(e){
+			var isLegend=false;
+			var box=canvas.getBoundingClientRect(),
+				pos = {
+				x:e.clientX-box.left,
+				y:e.clientY-box.top
+			};
+			// 标签
+			for(var i=0,item,len=that.legend.length;i<len;i++){
+				item=that.legend[i];
+				roundRect(ctx,item.x,item.y,item.w,item.h,item.r);
+				// 因为缩小了一倍，所以坐标要*2
+				if(ctx.isPointInPath(pos.x*2,pos.y*2)){
+					canvas.style.cursor='pointer';
+					if(!item.hide){
+						that.clearGrid(i);
+					}
+					isLegend=true;
+					break;
+				}
+				canvas.style.cursor='default';
+				that.tip.style.display='none';
+			}
+
+			if(isLegend) return;
+			// 图表
+			var startAng=-Math.PI/2;
+			for(var i=0,l=that.animateArr.length;i<l;i++){
+				item=that.animateArr[i];
+				if(item.hide)continue;
+				ctx.beginPath();
+				ctx.moveTo(that.W/2,that.H/2);
+				ctx.arc(that.W/2,that.H/2,that.H/3,startAng,startAng+item.ang,false);
+				ctx.closePath();
+				startAng+=item.ang;
+				if(ctx.isPointInPath(pos.x*2,pos.y*2)){
+					canvas.style.cursor='pointer';
+					that.clearGrid(i);
+					that.showInfo(pos,that.toolTip,[{name:item.name,num:item.num+' ('+item.percent+'%)'}]);
+					break;
+				}
+				canvas.style.cursor='default';
+				that.clearGrid();
+			}
+
+		},false);
+		this.canvas.addEventListener('mousedown',function(e){
+			e.preventDefault();
+			var box=that.canvas.getBoundingClientRect();
+			var pos = {
+				x:e.clientX-box.left,
+				y:e.clientY-box.top
+			};
+			for(var i=0,item,len=that.legend.length;i<len;i++){
+				item=that.legend[i];
+				roundRect(ctx,item.x,item.y,item.w,item.h,item.r);
+				// 因为缩小了一倍，所以坐标要*2
+				if(ctx.isPointInPath(pos.x*2,pos.y*2)){
+					that.data[i].hide=!that.data[i].hide;
+					that.create();
+					break;
+				}
+			}
+		},false);
+
+	}
+	clearGrid(index){
+		var that=this,
+			ctx=that.ctx,
+			canvas=that.canvas,
+			item,startAng=-Math.PI/2,
+			len=that.animateArr.filter(item=>!item.hide).length,
+			j=0,angle=0,
+			r=that.H/3;
+		ctx.clearRect(0,0,that.W,that.H);
+		that.draw();
+		ctx.save();
+		ctx.translate(that.W/2,that.H/2);
+
+		for(var i=0,l=that.animateArr.length;i<l;i++){
+			item=that.animateArr[i];
+			if(item.hide)continue;
+			ctx.strokeStyle=item.color;
+			ctx.fillStyle=item.color;
+			angle=j>=len-1?Math.PI*2-Math.PI/2:startAng+item.ang;
+			ctx.beginPath();
+			ctx.moveTo(0,0);
+			if(index===i){
+				ctx.save();
+				// ctx.shadowColor='hsla(0,0%,50%,1)';
+				ctx.shadowColor=item.color;
+				ctx.shadowBlur=5;
+				ctx.arc(0,0,r+20,startAng,angle,false);
+				ctx.closePath();
+				ctx.fill();
+				ctx.stroke();
+				ctx.restore();
+			} else {
+				ctx.arc(0,0,r,startAng,angle,false);
+				ctx.closePath();
+				ctx.fill();
+			}
+			//画描述
+			var tr=r+40,tw=0,
+				tAng=startAng+item.ang/2,
+				x=tr*Math.cos(tAng),
+				y=tr*Math.sin(tAng);
+
+			ctx.lineWidth=2;
+			ctx.lineCap='round';
+			ctx.beginPath();
+			ctx.moveTo(0,0);
+			ctx.lineTo(x,y);
+			if(tAng>=-Math.PI/2&&tAng<=Math.PI/2){
+				ctx.lineTo(x+30,y);
+				ctx.fillText(item.name,x+40,y+10);
+			} else {
+				tw=ctx.measureText(item.name).width;//计算字符长度
+				ctx.lineTo(x-30,y);
+				ctx.fillText(item.name,x-40-tw,y+10);
+			}
+			
+			ctx.stroke();
+			startAng+=item.ang;
+			j++;
+		}
+		ctx.restore();
+	}
+	animate(){
+		var that=this,
+			ctx=that.ctx,
+			canvas=that.canvas,
+			item,startAng,ang,
+			isStop=true;
+
+		(function run(){
+			isStop=true;
+			ctx.save();
+			ctx.translate(that.W/2,that.H/2);
+			ctx.fillStyle='#fff';
+			ctx.beginPath();
+			ctx.arc(0,0,that.H/3+30,0,Math.PI*2,false);
+			ctx.fill();
+			for(var i=0,l=that.animateArr.length;i<l;i++){
+				item=that.animateArr[i];
+				if(item.hide)continue;
+				startAng=-Math.PI/2;
+				that.animateArr.forEach((obj,j)=>{
+					if(j<i&&!obj.hide){startAng+=obj.cur;}
+				});
+
+				ctx.fillStyle=item.color;
+				if(item.create){
+					if(item.cur>=item.ang){
+						item.cur=item.last=item.ang;
+					} else {
+						item.cur+=0.05;
+						isStop=false;
+					}
+				} else {
+					if(item.last>item.ang){
+						ang=item.cur-0.05;
+						if(ang<item.ang){
+							item.cur=item.last=item.ang;
+						}
+					} else {
+						ang=item.cur+0.05;
+						if(ang>item.ang){
+							item.cur=item.last=item.ang;
+						}
+					}
+					if(item.cur!=item.ang){
+						item.cur=ang;
+						isStop=false;
+					}
+				}
+
+				ctx.beginPath();
+				ctx.moveTo(0,0);
+				ctx.arc(0,0,that.H/3,startAng,startAng+item.cur,false);
+				ctx.closePath();
+				ctx.fill();
+			}
+			ctx.restore();
+			if(isStop) {
+				that.clearGrid();
+				return;
+			}
+			requestAnimationFrame(run);
+		}());
+	}
+	create(){
+		this.initData();
+		this.draw();
+		this.animate();
+	}
+	initData(){
+		var that=this,
+			item,
+			total=0;
+		if(!this.data||!this.data.length){return;}
+		this.legend.length=0;
+		for(var i=0;i<this.data.length;i++){
+			item=this.data[i];
+			// 赋予没有颜色的项
+			if(!item.color){
+				var hsl=i%2?180+20*i/2:20*(i-1);
+				item.color='hsla('+hsl+',70%,60%,1)';
+			}
+			item.name=item.name||'unnamed';
+
+			this.legend.push({
+				hide:!!item.hide,
+				name:item.name,
+				color:item.color,
+				x:50,
+				y:that.paddingTop+40+i*50,
+				w:80,
+				h:30,
+				r:5
+			});
+
+			if(item.hide)continue;
+			total+=item.value;
+		}
+
+		for(var i=0;i<this.data.length;i++){
+			item=this.data[i];
+			if(!this.animateArr[i]){
+				this.animateArr.push({
+					i:i,
+					create:true,
+					hide:!!item.hide,
+					name:item.name,
+					color:item.color,
+					num:item.value,
+					percent:Math.round(item.value/total*10000)/100,
+					ang:Math.round(item.value/total*Math.PI*2*100)/100,
+					last:0,
+					cur:0
+				});
+			} else {//更新				
+				if(that.animateArr[i].hide&&!item.hide){
+					that.animateArr[i].create=true;
+					that.animateArr[i].cur=0;
+				} else {
+					that.animateArr[i].create=false;
+				}
+				that.animateArr[i].hide=item.hide;
+				that.animateArr[i].percent=Math.round(item.value/total*10000)/100;
+				that.animateArr[i].ang=Math.round(item.value/total*Math.PI*2*100)/100;
+			}
+		}
+	}
+	draw(){
+		var item,ctx=this.ctx;
+		ctx.fillStyle='hsla(0,0%,30%,1)';
+		ctx.strokeStyle='hsla(0,0%,20%,1)';
+		ctx.textBaseLine='middle';
+		ctx.font='24px arial';
+		
+		ctx.clearRect(0,0,this.W,this.H);
+		if(this.title){
+			ctx.save();
+			ctx.textAlign='center';
+			ctx.font='bold 40px arial';
+			ctx.fillText(this.title,this.W/2,70);
+			ctx.restore();
+		}
+		ctx.save();
+		for(var i=0;i<this.legend.length;i++){
+			item=this.legend[i];
+			// 画分组标签
+			ctx.textAlign='left';
+			ctx.fillStyle=item.color;
+			ctx.strokeStyle=item.color;
+			roundRect(ctx,item.x,item.y,item.w,item.h,item.r);
+			ctx.globalAlpha=item.hide?0.3:1;
+			ctx.fill();
+			ctx.fillText(item.name,item.x+item.w+20,item.y+item.h-5);
+		}
+		ctx.restore();
+	}
+}
+
