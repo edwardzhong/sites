@@ -290,12 +290,12 @@ class Bar extends Chart{
 				for(var j=0,jl=item.data.length;j<jl;j++){
 					obj=item.data[j];
 					if(obj.p>obj.h){
-						h=obj.y-4;
+						h=obj.y-8;
 						if(h<obj.h){
 							obj.y=obj.p=obj.h;
 						}
 					} else {
-						h=obj.y+4;
+						h=obj.y+8;
 						if(h>obj.h){
 							obj.y=obj.p=obj.h;
 						}
