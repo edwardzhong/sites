@@ -54,10 +54,11 @@ function calculateNum(arr, isMin) {
         }
     }
     num = j;
-    if (k) {
-        if (!k % 2) { num += 2; }
-        if (j % 2) { num++; }
+    if(num<4){
+        if(max%4==0){num=4;}
+        if(max%3==0){num=3;}
     }
+
     step = Math.round(max / num * 100) / 100;
 
     if (low < 0) {
