@@ -30,40 +30,38 @@ function roundRect(ctx,x,y,width,height,radius){
 
 function calculateNum(arr,isMin){
 	if(!arr||!arr.length){
-		return {
-			num:0,
-			step:0,
-			min:0,
-			max:0
-		}
+		return { num:0, step:0, min:0, max:0 };
 	}
 	var high=Math.max.apply(this,arr),
 		low=Math.min.apply(this,arr),
 		num=0,max=0,min=0,
-		pow,sum,step,absLow,i,j;
+		pow,sum,step,absLow,i,j,k=0;
 	outer:
 	for(i=0;i<10;i++){
 		pow=Math.pow(10,i);
-		if(i>1){
-			for(j=1;j<=10;j++){
-				sum=pow+pow/10*j
-				if(sum>high){
-					max=sum;
-					break outer;
-				}
-			}	
-		}
 		for(j=1;j<=10;j++){
-			sum=pow*j
+			sum=pow*j;
 			if(sum>high){
 				max=sum;
+				break;
+			}
+		}
+		if(!max)continue;
+		if(i<2){break;}
+		for(k=0;k<10;k++){
+			if(max-pow/10*(k+1)<high){
+				max-=pow/10*k;
 				break outer;
 			}
 		}
 	}
-	num=Math.max(j,2);
-	step=num?Math.ceil(max/num):0;
-	max=step*num;
+	num=j;
+	if(k){
+		if(!k%2){num+=2; }
+		if(j%2){num++; }
+	}
+	step=Math.round(max/num*100)/100;
+
 	if(low<0){
 		absLow=Math.abs(low);
 		num++;
@@ -85,6 +83,7 @@ function calculateNum(arr,isMin){
 		}
 		min=m;
 	}
+
 	return {
 		num:num,
 		step:step,
@@ -1646,10 +1645,6 @@ class Point extends Chart{
 				
 				for(var j=0,jl=item.data.length;j<jl;j++){
 					obj=item.data[j];
-					var gradient=ctx.createRadialGradient(obj.x,-obj.h,0,obj.x,-obj.h,obj.radius);
-					gradient.addColorStop(0,'hsla('+item.hsl+',70%,80%,0.7)');
-					gradient.addColorStop(1,'hsla('+item.hsl+',70%,60%,0.7)');
-					ctx.fillStyle=gradient;
 					ctx.beginPath();
 					if(obj.r>obj.radius){
 						r=obj.r-obj.v;
@@ -1681,6 +1676,10 @@ class Point extends Chart{
 						obj.y=h;
 						item.isStop=false;
 					}
+					var gradient=ctx.createRadialGradient(obj.x,-obj.y,0,obj.x,-obj.y,obj.r);
+					gradient.addColorStop(0,'hsla('+item.hsl+',70%,85%,0.7)');
+					gradient.addColorStop(1,'hsla('+item.hsl+',70%,60%,0.7)');
+					ctx.fillStyle=gradient;
 					ctx.arc(obj.x,-obj.y,obj.r,0,Math.PI*2,false);
 					ctx.fill();
 					ctx.stroke();
