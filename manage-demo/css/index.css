@@ -11,6 +11,7 @@ a {
 	color: #347ab7;
 	text-decoration: none
 }
+p{margin: 0;}
 .content {
 	position: relative;
 	height: 100%;
