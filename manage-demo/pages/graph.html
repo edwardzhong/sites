@@ -15,10 +15,54 @@
       <li><a href="javascript:;">Home</a></li>
       <li class="active">Graph</li>
     </ol>
-    <div class="graph">
-      <p>continue to code</p>  
+    <div class="wrap">
+      <h3>Chart line</h3>
+      <div id="line"></div>
     </div>
-
+    <div class="wrap">
+      <h3>Chart pie</h3>
+      <div id="pie"></div>
+    </div>
   </div>
+<script src="../../js/chart.js"></script>
+<script>
+var con=document.getElementById('line');
+var line = new Line(con);
+line.init({
+    title:'未来一周气温变化',
+    xAxis:{
+        data:['周一','周二','周三','周四','周五','周六','周日']
+    },
+    yAxis:{
+        name:'温度',
+        formatter:'{value} °C'
+    },
+    series:[
+        {
+            name:'最高气温',
+            data:[11, 11, 15, 13, 12, 13, 10]
+        },
+        {
+            name:'最低气温',
+            data:[1, -2, 2, 5, 3, 2, 0]
+        }   
+    ]
+});
+var con=document.getElementById('pie');
+var pie = new Pie(con);
+pie.init({
+    W:800,
+    H:600,
+    title:'网站用户访问来源',
+    toolTip:'访问来源',
+    data:[
+        {value:435, name:'直接访问'},
+        {value:310, name:'邮件营销'},
+        {value:234, name:'联盟广告'},
+        {value:135, name:'视频广告'},
+        {value:1548, name:'搜索引擎'}
+    ]
+});
+</script>
 </body>
 </html>
