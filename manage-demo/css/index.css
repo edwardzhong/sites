@@ -1,6 +1,6 @@
 body, html {
-	font-family: FreeSans, Arimo, Droid Sans, Helvetica Neue, Helvetica, Hiragino Sans GB, Microsoft YaHei, Arial, sans-serif;
-	font-family: "Roboto", FreeSans, Arimo, "Droid Sans","Helvetica Neue", Helvetica, Arial, sans-serif;
+	// font-family: FreeSans, Arimo, Droid Sans, Helvetica Neue, Helvetica, Hiragino Sans GB, Microsoft YaHei, Arial, sans-serif;
+	font-family: "Raleway","Droid Sans","Helvetica Neue", Helvetica, Arial, sans-serif;
 	font-size: 14px;
 	line-height: 1.428571429;
 	color: #666;
@@ -28,7 +28,10 @@ a {
 	background-color: #fff;
 	z-index: 1
 }
-
+.footer p{
+	margin: 0;
+	padding: 5px;
+}
 /* header */
 .header {
 	height: 50px;
@@ -133,7 +136,7 @@ a {
 }
 .header-right .avatar img{
 	width: 100%;
-	height: 100%;
+	height: 120%;
 }
 
 .header-middle {
@@ -260,10 +263,14 @@ a {
 	margin-left: 50px
 }
 .nav {
+	position: relative;
+	width: 100%;
+	overflow-x: auto;
 	box-sizing: border-box;
-	padding: 2px
+	padding: 2px;
 }
 .nav .menu-tabs {
+	position: static;
 	height: 36px
 }
 .nav .menu-tabs a {

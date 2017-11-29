@@ -4,10 +4,10 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
   <title>manage-demo</title>
-  <link rel="stylesheet" href="./css/pure.min.css">
-  <link rel="stylesheet" href="./css/fontello.css">
-  <link rel="stylesheet" href="./css/reboto/roboto.css">
-  <link rel="stylesheet" href="./css/main.css">
+  <link rel="stylesheet" href="./css/base.min.css">
+  <link rel="stylesheet" href="./css/fontello/fontello.css">
+  <link rel="stylesheet" href="./css/raleway/raleway.css">
+  <link rel="stylesheet" href="./css/index.css">
 </head>
 <body>
   <div class="content">
@@ -42,12 +42,12 @@
               </div>
             </li><li class="profile">
             <div class="avatar">
-              <img src="./img/me.jpg" alt="">
+              <img src="./img/avatar.jpg" alt="">
             </div>
             <span class="user-name">Jeff Zhong</span>
             <div class="detail user-detail">
               <div class="con">
-                <div class="avatar"><img src="img/me.jpg" alt=""></div>
+                <div class="avatar"><img src="./img/avatar.jpg" alt=""></div>
                 <a class="user-link" href="https://github.com/edwardzhong/">Jeff Zhong</a>
                 <p>Web developer</p>
               </div>
@@ -90,7 +90,16 @@
               <a title="Menu" href="./pages/menu.html"><span> Menu</span></a>
             </li>
             <li>
-              <a title="Other" href="./pages/other.html"><span> Other</span></a>
+              <a title="Alert" href="./pages/alert.html"><span> Alert</span></a>
+            </li>
+            <li>
+              <a title="Page" href="./pages/page.html"><span> Page</span></a>
+            </li>
+            <li>
+              <a title="Other" href="./pages/panel.html"><span> Panel</span></a>
+            </li>
+            <li>
+              <a title="Radio & Checkbox" href="./pages/checkbox.html"><span> Radio & Checkbox</span></a>
             </li>
           </ul>
         </li>
@@ -106,33 +115,23 @@
       <div class="page-con"></div>
     </div>
     <footer class="footer">
-      <p>All content copyright <a href="/about">Jeff Zhong</a>&nbsp;&nbsp;&copy; 2017. All rights reserved.</p>
+      <p>copyright &copy; 2017 <a href="https://github.com/edwardzhong">Jeff Zhong</a></p>
     </footer>
   </div>
 <script src="./js/jquery.min.js"></script>
 <script>
+    var $nav= $('#nav'),
+        $navParent= $nav.parent();
+
     // 导航栏隐藏／显示
     $('#pushMenu').on('click',function(){
       $('.content').toggleClass('hide-nav');
     });
-    
-    /**
-     * set page container scroll
-     */
-    function setHeight(){
-      var winHeight=$(window).height(),
-          headerHeight=$('.header').height(),
-          footerHeight=$('.footer').height(),
-          navHeight=$('.nav').outerHeight();
-      $('.page-con').height(winHeight-headerHeight-navHeight-footerHeight);
-    }
-    setHeight();
-    $(window).on('resize',setHeight);
 
     //存在则激活tab, 否则新建tab 
     function clickMenu(url,txt){
       var i=-1;
-      $('#nav li').each(function(index, el) {
+      $nav.find('li').each(function(index, el) {
         if($(this).attr('data-txt')==txt){
           i=index;
           return false;
@@ -142,29 +141,43 @@
         selectTab(i);
       } else {
         appendTab(txt);
-        appendPage(url);        
+        appendPage(url);
       }
     }
-
+    //添加页面
     function appendPage(url){
       $('.page-con .page').removeClass('active');
       $('.page-con').append('<div class="page active"><iframe src="'+url+'" frameborder="0" width="100%" height="100%"></iframe></div>');
     }
-
+    //添加tab
     function appendTab(txt){
-      $('#nav li').removeClass('active');
-      $('#nav').append('<li data-txt="'+txt+'" class="active"><a href="javascript:;">'+txt+'<i class="close">×</i></a></li>');
+      $nav.find('li').removeClass('active');
+      $nav.append('<li data-txt="'+txt+'" class="active"><a href="javascript:;">'+txt+'<i class="close">×</i></a></li>');
+      var w=setTabWidth();
+      //移动到新增tab
+      $navParent.animate({'scrollLeft':w+'px'},600); 
     }
 
+    //选择下一个tab
     function selectNext(i){
-      var len=$('#nav li').length;
+      var len=$nav.find('li').length;
       if(len<=1) return;
       selectTab(i>0?i-1:i+1);
     }
 
+    //选择tab
     function selectTab(index){
-      $('#nav li').eq(index).addClass('active').siblings('.active').removeClass('active');
-      $('.page-con .page').eq(index).addClass('active').siblings('.active').removeClass('active');
+      var selTab=$nav.find('li').eq(index),
+          selTabLeft=selTab.position().left,
+          tabWrapWidth=$navParent.width();
+
+        selTab.addClass('active').siblings('.active').removeClass('active');
+        $('.page-con .page').eq(index).addClass('active').siblings('.active').removeClass('active');
+        
+        //不在tab栏显示范围则滚动到可视范围内
+        if(selTabLeft<0||selTabLeft>tabWrapWidth){
+          $navParent.animate({ scrollLeft: selTabLeft }, 600);
+        }
     }
 
     // 选择导航菜单
@@ -178,19 +191,19 @@
       $li.addClass('active').siblings('.active').removeClass('active');
       if($li.hasClass('children')) return;
       var url=$(this).attr('href'),
-          txt=$.trim($(this).find('span').html());
+          txt=$.trim($(this).attr('title'));
       clickMenu(url,txt);
     });
 
     // 选择tab
-    $('#nav').on('click','li',function(){
+    $nav.on('click','li',function(){
       if($(this).hasClass('active')) return;
       var index =$(this).index();
       selectTab(index);
     });
 
     // 关闭tab
-    $('#nav').on('click','.close',function(e){
+    $nav.on('click','.close',function(e){
       e.preventDefault();
       e.stopPropagation();
       var $li=$(this).parent().parent(),
@@ -200,8 +213,36 @@
       }
       $li.remove();
       $('.page-con .page').eq(index).remove();
+      setTabWidth();
     });
 
+    //设置导航列表宽度
+    function setTabWidth(){
+      var w=0;
+      var pw=$navParent.width();
+      $nav.find('li').each(function(i,item){
+        w+=$(item).outerWidth(true);
+      });
+      w=Math.max(w+10,pw);
+      $nav.css('width',w+'px');
+      return w;
+    }
+
+    //设置高度
+    function setHeight(){
+      var winHeight=$(window).height(),
+          headerHeight=$('.header').height(),
+          footerHeight=$('.footer').height(),
+          navHeight=$('.nav').outerHeight();
+      $('.page-con').height(winHeight-headerHeight-navHeight-footerHeight);
+    }
+    setHeight();
+    setTabWidth();
+    $(window).on('resize',function(){
+      setHeight();
+      setTabWidth();
+    });
+    //选择第一项
     $('#menuList a').first().click();
 </script>
 </body>
