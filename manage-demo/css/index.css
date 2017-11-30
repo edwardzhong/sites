@@ -343,14 +343,17 @@ a {
 	border-color: #307197;
 }
 .side-menu li.active > ul{
-	display: block;
+	// display: block;
 }
 
 .side-menu li ul{
-	display: none;
+	// display: none;
+	overflow: hidden;
 	top: 0;
+	height: 0;
 	left: 100%;
 	background-color: #303446;
+	transition: height .3s ease-in-out;
 }
 .hide-nav .side-menu li ul{
 	position: absolute;
@@ -362,5 +365,7 @@ a {
 .side-menu li ul li:hover a,.side-menu li ul li.active a {
 	background-color: #2a2e40;
 }
+
+@keyframe
 
 

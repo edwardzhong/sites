@@ -127,7 +127,8 @@
 <script src="./js/jquery.min.js"></script>
 <script>
     var $nav= $('#nav'),
-        $navParent= $nav.parent();
+        $navParent= $nav.parent(),
+        lh=$('#menuList').find('li').first().height();
 
     // 导航栏隐藏／显示
     $('#pushMenu').on('click',function(){
@@ -188,13 +189,24 @@
 
     // 选择导航菜单
     $('#menuList').on('click','a',function(e){
-      var $li=$(this).parent();
+      var $li=$(this).parent(),
+          cul=$li.find('ul');
+
       if($(this).attr('data-type')!='tab')return;
       e.preventDefault();
-      if($li.hasClass('children')&&$li.hasClass('active')){
-        $li.removeClass('active');
-        return;
+
+      //有子菜单
+      if($li.hasClass('children')){
+        if($li.hasClass('active')){
+          $li.removeClass('active');
+          cul.css('height',0);
+          return;
+        } else{
+          var h=cul.find('li').length*lh;
+          cul.css('height',h+'px');
+        }
       }
+
       $li.addClass('active').siblings('.active').removeClass('active');
       if($li.hasClass('children')) return;
       var url=$(this).attr('href'),
@@ -235,6 +247,13 @@
       return w;
     }
 
+    function setWidth(){
+      var winWidth=$(window).width();
+      if(winWidth<769){
+        $('.content').addClass('hide-nav');
+      }
+    }
+
     //设置高度
     function setHeight(){
       var winHeight=$(window).height(),
@@ -243,12 +262,14 @@
           navHeight=$('.nav').outerHeight();
       $('.page-con').height(winHeight-headerHeight-navHeight-footerHeight);
     }
-    setHeight();
-    setTabWidth();
-    $(window).on('resize',function(){
+    function windowResize(){
       setHeight();
       setTabWidth();
-    });
+      setWidth();
+    }
+    windowResize();
+    $(window).on('resize',windowResize);
+
     //选择第一项
     $('#menuList a').first().click();
 </script>
