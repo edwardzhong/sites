@@ -133,6 +133,7 @@
     // 导航栏隐藏／显示
     $('#pushMenu').on('click',function(){
       $('.content').toggleClass('hide-nav');
+      setTabWidth();
     });
 
     //存在则激活tab, 否则新建tab 
