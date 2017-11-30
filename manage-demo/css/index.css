@@ -254,7 +254,6 @@ a {
 .main {
 	height: calc(100% - 50px);
 	// overflow-y: auto;
-	height: 100%;
 	overflow: hidden;
 	margin-left: 200px;
 	transition: margin-left .3s ease-in-out
