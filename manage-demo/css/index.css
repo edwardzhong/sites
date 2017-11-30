@@ -252,7 +252,7 @@ a {
 
 /* main */
 .main {
-	// height: calc(100% - 99px);
+	height: calc(100% - 50px);
 	// overflow-y: auto;
 	height: 100%;
 	overflow: hidden;

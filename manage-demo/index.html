@@ -66,45 +66,51 @@
     <aside class="menu-wrap">
       <ul id="menuList" class="side-menu">
         <li>
-          <a title="Vue Sample" href="./pages/home.html"><i class="icon-code"></i><span>Vue Sample</span></a>
+          <a data-type="tab" title="Vue Sample" href="./pages/home.html"><i class="icon-code"></i><span>Vue Sample</span></a>
         </li>
         <li class="children">
-          <a title="Html Component" href="javascript:;"><i class="icon-doc-text"></i><span>Html Component</span></a>
+          <a data-type="tab" title="Html Component" href="javascript:;"><i class="icon-doc-text"></i><span>Html Component</span></a>
           <ul>
             <li>
-              <a title="Grid" href="./pages/grid.html"><span> Grid</span></a>
+              <a data-type="tab" title="Grid" href="./pages/grid.html"><span> Grid</span></a>
             </li>
             <li>
-              <a title="Button" href="./pages/button.html"><span> Button</span></a>
+              <a data-type="tab" title="Button" href="./pages/button.html"><span> Button</span></a>
             </li>
             <li>
-              <a title="Form" href="./pages/form.html"><span> Form</span></a>
+              <a data-type="tab" title="Form" href="./pages/form.html"><span> Form</span></a>
             </li>
             <li>
-              <a title="Dialog" href="./pages/dialog.html"><span> Dialog</span></a>
+              <a data-type="tab" title="Dialog" href="./pages/dialog.html"><span> Dialog</span></a>
             </li>
             <li>
-              <a title="Table" href="./pages/table.html"><span> Table</span></a>
+              <a data-type="tab" title="Table" href="./pages/table.html"><span> Table</span></a>
             </li>
             <li>
-              <a title="Menu" href="./pages/menu.html"><span> Menu</span></a>
+              <a data-type="tab" title="Menu" href="./pages/menu.html"><span> Menu</span></a>
             </li>
             <li>
-              <a title="Alert" href="./pages/alert.html"><span> Alert</span></a>
+              <a data-type="tab" title="Alert" href="./pages/alert.html"><span> Alert</span></a>
             </li>
             <li>
-              <a title="Page" href="./pages/page.html"><span> Page</span></a>
+              <a data-type="tab" title="Page" href="./pages/page.html"><span> Page</span></a>
             </li>
             <li>
-              <a title="Other" href="./pages/panel.html"><span> Panel</span></a>
+              <a data-type="tab" title="Other" href="./pages/panel.html"><span> Panel</span></a>
             </li>
             <li>
-              <a title="Radio & Checkbox" href="./pages/checkbox.html"><span> Radio & Checkbox</span></a>
+              <a data-type="tab" title="Radio & Checkbox" href="./pages/checkbox.html"><span> Radio & Checkbox</span></a>
             </li>
           </ul>
         </li>
         <li>
-          <a title="Graph" href="./pages/graph.html"><i class="icon-picture"></i><span> Graph</span></a>
+          <a data-type="tab" title="Graph" href="./pages/graph.html"><i class="icon-picture"></i><span> Graph</span></a>
+        </li>
+        <li>
+          <a title="Web App" href="../../sites/webapp/"><i class="icon-font"></i><span>Web App</span></a>
+        </li>
+        <li>
+          <a title="Effect Demo" href="../../sites/demo/"><i class="icon-file-image"></i><span>Effect Demo</span></a>
         </li>
       </ul>
     </aside>
@@ -182,8 +188,9 @@
 
     // 选择导航菜单
     $('#menuList').on('click','a',function(e){
-      e.preventDefault();
       var $li=$(this).parent();
+      if($(this).attr('data-type')!='tab')return;
+      e.preventDefault();
       if($li.hasClass('children')&&$li.hasClass('active')){
         $li.removeClass('active');
         return;
