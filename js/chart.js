@@ -693,7 +693,7 @@ class Line extends Chart {
             prev, h = 0,
             x = 0,
             y = 0,
-            isStop = true;;
+            isStop = true;
 
         that.drawing = true;
         (function run() {
@@ -1416,7 +1416,7 @@ class Point extends Chart {
             min, max, numMin, numMax, item, obj, arr = [],
             numArr = [],
             index = 0,
-            r, r2, h;
+            r,h;
 
         if (!this.series.length) return;
         for (var i = 0; i < this.series.length; i++) {
@@ -1472,7 +1472,7 @@ class Point extends Chart {
                     obj.data[j].y = h;
                     obj.data[j].radius = r;
                     obj.data[j].r = 0;
-                    obj.data[j].v = r / 50;
+                    obj.data[j].v = r / 20;
                 });
                 this.animateArr.push(obj);
 
@@ -1493,7 +1493,7 @@ class Point extends Chart {
                         that.animateArr[i].data[j].r = 0;
                     }
                     that.animateArr[i].data[j].radius = r;
-                    that.animateArr[i].data[j].v = r / 50;
+                    that.animateArr[i].data[j].v = r / 20;
                     that.animateArr[i].data[j].h = h;
                 });
             }
@@ -1501,10 +1501,9 @@ class Point extends Chart {
         }
 
         function getRadius(numMax, numMin, num) {
-            r = Math.floor(num / numMax * xs / 3);
-            r2 = Math.floor(num / (numMin) / 30);
-            r = r2 > xs / 4 ? r : r2;
-            return Math.max(6, r);
+            var r1 = Math.ceil(num / numMax * xs / 3);
+            var r2 = Math.ceil(num / numMin * 6);
+            return Math.max(r2 > xs / 4 ? r1 : r2,6);
         }
     }
     drawAxis() {
@@ -1659,6 +1658,8 @@ class Point extends Chart {
     animate() {
         var that = this,
             ctx = this.ctx,
+            start=new Date(),
+            time=0,
             item, obj, h, r, isStop = true;
         (function run() {
             ctx.save();
@@ -1672,6 +1673,7 @@ class Point extends Chart {
             ctx.translate(that.padding, that.H - that.padding);
             ctx.shadowBlur = 1;
             isStop = true;
+            time=new Date()-start;
             for (var i = 0, l = that.animateArr.length; i < l; i++) {
                 item = that.animateArr[i];
                 if (item.hide) continue;
@@ -1684,12 +1686,12 @@ class Point extends Chart {
                     obj = item.data[j];
                     ctx.beginPath();
                     if (obj.r > obj.radius) {
-                        r = obj.r - obj.v;
+                        r = obj.r - obj.v*time/1000;
                         if (r < obj.radius) {
                             obj.r = obj.radius;
                         }
                     } else {
-                        r = obj.r + obj.v;
+                        r = obj.r + obj.v*time/1000;
                         if (r > obj.radius) {
                             obj.r = obj.radius;
                         }
@@ -1699,12 +1701,12 @@ class Point extends Chart {
                         item.isStop = false;
                     }
                     if (obj.p > obj.h) {
-                        h = obj.y - 4;
+                        h = obj.y - 10*time/1000;
                         if (h < obj.h) {
                             obj.y = obj.p = obj.h;
                         }
                     } else {
-                        h = obj.y + 4;
+                        h = obj.y + 10*time/1000;
                         if (h > obj.h) {
                             obj.y = obj.p = obj.h;
                         }
