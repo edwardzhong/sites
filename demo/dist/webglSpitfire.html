@@ -30,7 +30,7 @@
 		<a class="page-list" href="../index.html">&larr;&nbsp;page list</a>
 		
 <h2>spitfire fighter</h2>
-<p>按上下左右方向键调整模型角度，+/- 键放大缩小</p>
+<p>上下左右方向键 调整视角，W/S/A/D 键旋转模型， +/- 键放大缩小</p>
 <canvas id="canvas" width="800" height="600"></canvas>
  </div>
 		<footer class="footer">
@@ -7018,20 +7018,22 @@ void main() {
     vec3 reflectionDirection = reflect(-lightDirection, normal);
     // 镜面反射亮度权重
     float specularLightWeighting = pow(max(dot(reflectionDirection, eyeDirection), 0.0), u_MaterialShininess);
-    // 镜面高光亮度
-    vec3 specular =  v_Scolor.rgb * specularLightWeighting;
+    // 镜面高光亮度, 使用点积判断光线方向，当<=0表示背面,则不显示高光。
+    vec3 specular =  v_Scolor.rgb * specularLightWeighting * (nDotL <= 0.0?0.0:1.0);
     gl_FragColor = vec4(ambient + diffuse + specular, v_Color.a);
-}   
+}
 </script>
 <script>
 var canvas = document.getElementById('canvas'),
     gl = get3DContext(canvas, true),
+    objElem = document.getElementById('tplObj'),
+    mtlElem = document.getElementById('tplMtl'),
     notMan=true,
     angleX = 0,
     angleY = 0,
-    eyeZ=13,
-    objElem = document.getElementById('tplObj'),
-    mtlElem = document.getElementById('tplMtl');
+    viewAngleX=30,
+    viewAngleY=45,
+    viewLEN=15;
 
 function main() {
     if (!gl) {
@@ -7127,11 +7129,17 @@ function main() {
     (function animate() {
         // 模型矩阵
         if(notMan){ angleY+=0.5; }
-        modelMatrix.setRotate(angleY % 360, 0, 1, 0); // Rotate around the y-axis
-        modelMatrix.rotate(angleX % 360, 1, 0, 0); // Rotate around the x-axis
+        modelMatrix.setRotate(angleY % 360, 0, 1, 0); // 绕y轴旋转
+        modelMatrix.rotate(angleX % 360, 1, 0, 0); // 绕x轴旋转
+
+        var eyeY=viewLEN*Math.sin(viewAngleY*Math.PI/180),
+            len=viewLEN*Math.cos(viewAngleY*Math.PI/180),
+            eyeX=len*Math.sin(viewAngleX*Math.PI/180),
+            eyeZ=len*Math.cos(viewAngleX*Math.PI/180);
+
         // 视点投影
         mvpMatrix.setPerspective(30, canvas.width / canvas.height, 1, 300);
-        mvpMatrix.lookAt(0, 8, eyeZ, 0, 0, 0, 0, 1, 0);
+        mvpMatrix.lookAt(eyeX, eyeY, eyeZ, 0, 0, 0, 0, (viewAngleY>90||viewAngleY<-90)?-1:1, 0);
         mvpMatrix.multiply(modelMatrix);
         // 根据模型矩阵计算用来变换法向量的矩阵
         normalMatrix.setInverseOf(modelMatrix);
@@ -7168,27 +7176,46 @@ function createEmptyArrayBuffer(gl, a_attribute, num, type) {
 }
 
 document.addEventListener('keydown',function(e){
-    if([37,38,39,40].indexOf(e.keyCode)>-1){
+    if([37,38,39,65,58,83,87,40].indexOf(e.keyCode)>-1){
         notMan=false;
-    }        
+    }
+    console.log(e.keyCode);
     switch(e.keyCode){
         case 38:        //up
-            angleX-=2;
+            viewAngleY-=2;
+            if(viewAngleY<-270){
+                viewAngleY+=360
+            }
             break;
         case 40:        //down
-            angleX+=2;
+            viewAngleY+=2;
+            if(viewAngleY>270){
+                viewAngleY-=360
+            }
             break;
         case 37:        //left
-            angleY-=2;
+            viewAngleX+=2;
             break;
         case 39:        //right
+            viewAngleX-=2;
+            break;
+        case 87:        //w
+            angleX-=2;
+            break;
+        case 83:        //s
+            angleX+=2;
+            break;
+        case 65:        //a
             angleY+=2;
             break;
-        case 187:        //zoom in
-            if(eyeZ>6) eyeZ--;
+        case 68:        //d
+            angleY-=2;
             break;
-        case 189:        //zoom out
-            if(eyeZ<30) eyeZ++;
+        case 187:       //zoom in
+            if(viewLEN>6) viewLEN--;
+            break;
+        case 189:       //zoom out
+            if(viewLEN<30) viewLEN++;
             break;
     }
 },false);
