@@ -29,7 +29,7 @@
 		<div class="main grid">
 		<a class="page-list" href="../index.html">&larr;&nbsp;page list</a>
 		
-<h2>spitfire fighter</h2>
+<h2>webGL spitfire fighter</h2>
 <p>上下左右方向键 调整视角，W/S/A/D键 旋转模型， +/-键 放大缩小</p>
 <canvas id="canvas" width="800" height="600"></canvas>
  </div>
@@ -7179,7 +7179,6 @@ document.addEventListener('keydown',function(e){
     if([37,38,39,65,58,83,87,40].indexOf(e.keyCode)>-1){
         notMan=false;
     }
-    console.log(e.keyCode);
     switch(e.keyCode){
         case 38:        //up
             viewAngleY-=2;
@@ -7217,10 +7216,12 @@ document.addEventListener('keydown',function(e){
         case 189:       //zoom out
             if(viewLEN<30) viewLEN++;
             break;
+        default:break;
     }
 },false);
 
 main();
+
 </script>
 
 </body>
