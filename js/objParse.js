@@ -17,7 +17,12 @@
 // d 透明度  
 // illum  光照模型
 
-// Constructor
+/**
+ * contructor
+ * @param {String} fileName 
+ * @param {String} objStr   obj字符串
+ * @param {String} mtlStr   mtl字符串
+ */
 var OBJDoc = function(fileName, objStr, mtlStr) {
     this.fileName = fileName;
     this.objStr = objStr;
@@ -28,7 +33,12 @@ var OBJDoc = function(fileName, objStr, mtlStr) {
     this.normals = []; // Initialize the property for Normal
 }
 
-// Parsing the OBJ file
+/**
+ * 解析字符串
+ * @param  {Number} scale   缩放比例
+ * @param  {Boolen} reverse 是否反转法线
+ * @return {Object}
+ */
 OBJDoc.prototype.parse = function(scale, reverse) {
     var lines = this.objStr.split('\n'), // Break up into lines and store them as array
         index = 0,
@@ -117,10 +127,12 @@ OBJDoc.prototype.parseFace = function(sp, materialName, vertices, reverse) {
         var word = sp.getWord();
         if (word == null) break;
         var subWords = word.split('/');
+        //顶点索引
         if (subWords.length >= 1) {
             var vi = parseInt(subWords[0]) - 1;
             face.vIndices.push(vi);
         }
+        //法线索引
         if (subWords.length >= 3) {
             var ni = parseInt(subWords[2]) - 1;
             face.nIndices.push(ni);
@@ -129,7 +141,7 @@ OBJDoc.prototype.parseFace = function(sp, materialName, vertices, reverse) {
         }
     }
 
-    // calc normal
+    // 根据顶点索引构建该面包含的顶点
     var v0 = [
         vertices[face.vIndices[0]].x,
         vertices[face.vIndices[0]].y,
@@ -146,11 +158,11 @@ OBJDoc.prototype.parseFace = function(sp, materialName, vertices, reverse) {
         vertices[face.vIndices[2]].z
     ];
 
-    // 面の法線を計算してnormalに設定
+    // 计算面的法线并归一化
     var normal = calcNormal(v0, v1, v2);
-    // 法線が正しく求められたか調べる
+    // 法线不存在
     if (normal == null) {
-        if (face.vIndices.length >= 4) { // 面が四角形なら別の3点の組み合わせで法線計算
+        if (face.vIndices.length >= 4) { // 有4个顶点的情况
             var v3 = [
                 vertices[face.vIndices[3]].x,
                 vertices[face.vIndices[3]].y,
@@ -158,7 +170,7 @@ OBJDoc.prototype.parseFace = function(sp, materialName, vertices, reverse) {
             ];
             normal = calcNormal(v1, v2, v3);
         }
-        if (normal == null) { // 法線が求められなかったのでY軸方向の法線とする
+        if (normal == null) { // 默认返回的法线
             normal = [0.0, 1.0, 0.0];
         }
     }
@@ -169,7 +181,7 @@ OBJDoc.prototype.parseFace = function(sp, materialName, vertices, reverse) {
     }
     face.normal = new Normal(normal[0], normal[1], normal[2]);
 
-    // Devide to triangles if face contains over 3 points.
+    // 面的顶点大于3时,则将面分割为多个三角形
     if (face.vIndices.length > 3) {
         var n = face.vIndices.length - 2;
         var newVIndices = new Array(n * 3);
@@ -202,23 +214,22 @@ OBJDoc.prototype.isMTLComplete = function() {
 // Find color by material name
 OBJDoc.prototype.findMtl = function(name) {
     for (var i = 0; i < this.mtls.length; i++) {
-        for (var j = 0; j < this.mtls[i].materials.length; j++) {
-            if (this.mtls[i].materials[j].name == name) {
-                return (this.mtls[i].materials[j])
-            }
+        if(this.mtls[i].materials[name]){
+            return this.mtls[i].materials[name];
         }
     }
-    return (new Color(0.8, 0.8, 0.8, 1));
+    return new Color(0.8, 0.8, 0.8, 1);
 }
 
 //------------------------------------------------------------------------------
 // Retrieve the information for drawing 3D model
 OBJDoc.prototype.getDrawingInfo = function() {
-    // Create an arrays for vertex coordinates, normals, colors, and indices
+    // 将所有的图形的索引长度相加
     var numIndices = 0;
     for (var i = 0; i < this.objects.length; i++) {
         numIndices += this.objects[i].numIndices;
     }
+    // 构造顶点,法线,颜色,高光色,索引的类型化数组
     var numVertices = numIndices;
     var vertices = new Float32Array(numVertices * 3);
     var normals = new Float32Array(numVertices * 3);
@@ -226,7 +237,7 @@ OBJDoc.prototype.getDrawingInfo = function() {
     var sColors = new Float32Array(numVertices * 4);
     var indices = new Uint16Array(numIndices);
 
-    // Set vertex, normal and color
+    // 将所有的分模型合并输出为一个单一的模型
     var index_indices = 0;
     for (var i = 0; i < this.objects.length; i++) {
         var object = this.objects[i];
@@ -279,7 +290,7 @@ OBJDoc.prototype.getDrawingInfo = function() {
 //------------------------------------------------------------------------------
 var MTLDoc = function() {
     this.complete = false; // MTL is configured correctly
-    this.materials = [];
+    this.materials = {};
 }
 MTLDoc.prototype.readMTLFile = function(fileString) {
     var lines = fileString.split('\n'); // Break up into lines and store them as array
@@ -312,7 +323,7 @@ MTLDoc.prototype.readMTLFile = function(fileString) {
             case 'd':
                 if (name == "") continue; // Go to the next line because of Error
                 material.setOpacity(sp);
-                this.materials.push(material);
+                this.materials[name]=material;;
                 name = "";
         }
     }

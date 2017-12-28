@@ -709,22 +709,20 @@ var Vector3 = function(opt_src) {
 }
 
 /**
-  * Normalize.
+  * Normalize.归一化，保持方向不变，但总长度为1，即：v/length
   * @return this
   */
 Vector3.prototype.normalize = function() {
   var v = this.elements;
   var c = v[0], d = v[1], e = v[2], g = Math.sqrt(c*c+d*d+e*e);
-  if(g){
-    if(g == 1)
-        return this;
-   } else {
-     v[0] = 0; v[1] = 0; v[2] = 0;
-     return this;
-   }
-   g = 1/g;
-   v[0] = c*g; v[1] = d*g; v[2] = e*g;
-   return this;
+  if(!g){
+    v[0] = 0; v[1] = 0; v[2] = 0;
+    return this;
+  }
+  if(g == 1) return this;
+  g = 1/g;
+  v[0] = c*g; v[1] = d*g; v[2] = e*g;
+  return this;
 };
 
 /**

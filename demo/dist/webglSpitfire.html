@@ -30,7 +30,7 @@
 		<a class="page-list" href="../index.html">&larr;&nbsp;page list</a>
 		
 <h2>webGL spitfire fighter</h2>
-<p>上下左右方向键 调整视角，W/S/A/D键 旋转模型， +/-键 放大缩小</p>
+<p>上下左右方向键 调整视角，W/S/A/D/Q/E键 旋转模型， +/-键 放大缩小</p>
 <canvas id="canvas" width="800" height="600"></canvas>
  </div>
 		<footer class="footer">
@@ -7031,6 +7031,7 @@ var canvas = document.getElementById('canvas'),
     notMan=true,
     angleX = 0,
     angleY = 0,
+    angleZ = 0,
     viewAngleX=30,
     viewAngleY=45,
     viewLEN=15;
@@ -7081,7 +7082,7 @@ function main() {
 
     // 分析模型字符串
     var objDoc = new OBJDoc('plane',objElem.text,mtlElem.text);
-    if(!objDoc.parse(1, false)){return;}
+    if(!objDoc.parse(1, true)){return;}
     var drawingInfo = objDoc.getDrawingInfo();
 
     // 将数据写入缓冲区
@@ -7131,6 +7132,7 @@ function main() {
         if(notMan){ angleY+=0.5; }
         modelMatrix.setRotate(angleY % 360, 0, 1, 0); // 绕y轴旋转
         modelMatrix.rotate(angleX % 360, 1, 0, 0); // 绕x轴旋转
+        modelMatrix.rotate(angleZ % 360, 0, 0, 1); // 绕z轴旋转
 
         var eyeY=viewLEN*Math.sin(viewAngleY*Math.PI/180),
             len=viewLEN*Math.cos(viewAngleY*Math.PI/180),
@@ -7176,9 +7178,10 @@ function createEmptyArrayBuffer(gl, a_attribute, num, type) {
 }
 
 document.addEventListener('keydown',function(e){
-    if([37,38,39,65,58,83,87,40].indexOf(e.keyCode)>-1){
+    if([37,38,39,65,58,83,87,40,69,81].indexOf(e.keyCode)>-1){
         notMan=false;
     }
+    console.log(e.keyCode);
     switch(e.keyCode){
         case 38:        //up
             viewAngleY-=2;
@@ -7209,6 +7212,12 @@ document.addEventListener('keydown',function(e){
             break;
         case 68:        //d
             angleY-=2;
+            break;
+        case 81:        //q
+            angleZ-=2;
+            break;
+        case 69:        //e
+            angleZ+=2;
             break;
         case 187:       //zoom in
             if(viewLEN>6) viewLEN--;
