@@ -6993,7 +6993,8 @@ uniform vec3 u_LightPosition;//光源位置
 uniform vec3 u_diffuseColor;//漫反射光颜色
 uniform vec3 u_AmbientColor;//环境光颜色
 uniform vec3 u_specularColor;//镜面反射光颜色
-uniform float u_MaterialShininess;// 镜面反射光泽度
+uniform float u_Shininess;// 镜面反射光泽度
+uniform vec3 u_viewPosition;// 视点位置
 varying vec3 v_Normal;//法向量
 varying vec3 v_Position;//顶点位置
 varying vec4 v_Color;//顶点颜色
@@ -7010,16 +7011,15 @@ void main() {
     vec3 diffuse = u_diffuseColor  * nDotL * v_Color.rgb;
     // 环境光亮度
     vec3 ambient = u_AmbientColor * v_Color.rgb;
-    // gl_FragColor = vec4(diffuse + ambient, v_Color.a);
 
     // 观察方向的单位向量V
-    vec3 eyeDirection = normalize(-v_Position);
+    vec3 eyeDirection = normalize(u_viewPosition - v_Position.xyz);// 反射方向
     // 反射方向
     vec3 reflectionDirection = reflect(-lightDirection, normal);
     // 镜面反射亮度权重
-    float specularLightWeighting = pow(max(dot(reflectionDirection, eyeDirection), 0.0), u_MaterialShininess);
+    float specularWeighting = pow(max(dot(reflectionDirection, eyeDirection), 0.0), u_Shininess);
     // 镜面高光亮度, 使用点积判断光线方向，当<=0表示背面,则不显示高光。
-    vec3 specular =  v_Scolor.rgb * specularLightWeighting * (nDotL <= 0.0?0.0:1.0);
+    vec3 specular =  u_specularColor.rgb * specularWeighting * (nDotL <= 0.0?0.0:1.0);
     gl_FragColor = vec4(ambient + diffuse + specular, v_Color.a);
 }
 </script>
@@ -7073,12 +7073,14 @@ function main() {
     var u_diffuseColor = gl.getUniformLocation(gl.program, 'u_diffuseColor');
     var u_LightPosition = gl.getUniformLocation(gl.program, 'u_LightPosition');
     var u_AmbientColor = gl.getUniformLocation(gl.program, 'u_AmbientColor');
-    var u_MaterialShininess = gl.getUniformLocation(gl.program, 'u_MaterialShininess');
-
-    if (!u_ModelMatrix || !u_MvpMatrix || !u_NormalMatrix || !u_diffuseColor || !u_LightPosition || !u_AmbientColor) {
-        console.log('Failed to get the storage location');
+    var u_specularColor = gl.getUniformLocation(gl.program, 'u_specularColor');
+    var u_Shininess = gl.getUniformLocation(gl.program, 'u_Shininess');
+    var u_viewPosition = gl.getUniformLocation(gl.program, 'u_viewPosition');
+    if (!u_ModelMatrix || !u_MvpMatrix || !u_NormalMatrix || !u_diffuseColor || !u_LightPosition || !u_AmbientColor || !u_viewPosition||!u_specularColor) {
+        console.log('Failed to get the storage uniform location');
         return;
     }
+
 
     // 分析模型字符串
     var objDoc = new OBJDoc('plane',objElem.text,mtlElem.text);
@@ -7117,10 +7119,10 @@ function main() {
     gl.uniform3f(u_diffuseColor, 1.0, 1.0, 1.0);
     // 设置环境光颜色
     gl.uniform3f(u_AmbientColor, 0.5, 0.5, 0.5);
-    // // 设置高光颜色
-    // gl.uniform3f(u_specularColor, 0.9, 0.9, 0.9);
+    // 设置高光颜色
+    gl.uniform3f(u_specularColor, 1, 1, 1);
     // 镜面反射光泽度
-    gl.uniform1f(u_MaterialShininess, 30.0);
+    gl.uniform1f(u_Shininess, 100.0);
 
     var modelMatrix = new Matrix4();
     var mvpMatrix = new Matrix4();
@@ -7139,6 +7141,7 @@ function main() {
             eyeX=len*Math.sin(viewAngleX*Math.PI/180),
             eyeZ=len*Math.cos(viewAngleX*Math.PI/180);
 
+        gl.uniform3f(u_viewPosition, eyeX,eyeY,eyeZ);
         // 视点投影
         mvpMatrix.setPerspective(30, canvas.width / canvas.height, 1, 300);
         mvpMatrix.lookAt(eyeX, eyeY, eyeZ, 0, 0, 0, 0, (viewAngleY>90||viewAngleY<-90)?-1:1, 0);
@@ -7181,7 +7184,6 @@ document.addEventListener('keydown',function(e){
     if([37,38,39,65,58,83,87,40,69,81].indexOf(e.keyCode)>-1){
         notMan=false;
     }
-    console.log(e.keyCode);
     switch(e.keyCode){
         case 38:        //up
             viewAngleY-=2;
