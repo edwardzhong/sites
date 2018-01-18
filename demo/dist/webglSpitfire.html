@@ -7018,8 +7018,7 @@ void main() {
     vec3 reflectionDirection = reflect(-lightDirection, normal);
     // 镜面反射亮度权重
     float specularWeighting = pow(max(dot(reflectionDirection, eyeDirection), 0.0), u_Shininess);
-    // 镜面高光亮度, 使用点积判断光线方向，当<=0表示背面,则不显示高光。
-    vec3 specular =  u_specularColor.rgb * specularWeighting * (nDotL <= 0.0?0.0:1.0);
+    vec3 specular =  u_specularColor.rgb * specularWeighting;
     gl_FragColor = vec4(ambient + diffuse + specular, v_Color.a);
 }
 </script>

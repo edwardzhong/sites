@@ -80,7 +80,7 @@
         vec3 viewDirection = normalize(u_viewPosition-v_position);
         vec3 halfwayDir = normalize(lightDirection + viewDirection);
         float specularWeighting = pow(max(dot(normal, halfwayDir), 0.0), shininess);
-        vec3 specular = specularColor.rgb * specularWeighting * step(cosTheta,0.0);
+        vec3 specular = specularColor.rgb * specularWeighting;
 
         // 第二个光源:点光源
         vec3 lightDirection2 = normalize(u_lightPosition2 - v_position.xyz);
@@ -93,7 +93,7 @@
         vec3 specularColor2 =vec3(1.0,1.0,1.0);
         vec3 reflectionDirection = reflect(-lightDirection2, normal);
         float specularWeighting2 = pow(max(dot(reflectionDirection, viewDirection), 0.0), shininess2);
-        vec3 specular2 = specularColor2.rgb * specularWeighting2 * step(cosTheta,0.0);
+        vec3 specular2 = specularColor2.rgb * specularWeighting2;
         // 两个光源亮度相加
         gl_FragColor = vec4(diffuse+diffuse2+ambient+specular+specular2,u_color.a); 
     }
