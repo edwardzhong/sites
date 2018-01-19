@@ -12,7 +12,7 @@
 	/**
 	 * 平面(2*0*2)
 	 */
-	function plane(color){
+	function Plane(color){
 		//  v0------v1
 	    //  |        | 
 	    //  |        |
@@ -20,9 +20,12 @@
 	    //  v3------v2
 		color=color||[1,1,1,1];
 		var positions = [-1,0,-1,  1,0,-1,  1,0,1,  -1,0,1],
-	        normals = [0,1,0,0,1,0,0,1,0,0,1,0],
-	        colors = color,
-	        indices = [1,3,0,1,2,3];
+	        normals = [0,1,0, 0,1,0, 0,1,0, 0,1,0],
+	        colors = [],
+	        indices = new Uint8Array([0,2,3,0,1,2]);
+	    for(var i=0;i<4;i++){
+	    	colors=colors.concat(color);
+	    }
 
 	    return new Polygon(positions,normals,colors,indices);
 	}
@@ -155,8 +158,8 @@
 			indices=[];
 
 		for(var i=0;i<l;i++){
-			x=Math.cos(angle*i);
-			z=Math.sin(angle*i);
+			x=r*Math.cos(angle*i);
+			z=r*Math.sin(angle*i);
 			
 			pushVertex([x,h/2,z],normalize([x,h/2,z]));
 			pushVertex([x,h/2,z],[0,1,0]);
@@ -210,8 +213,8 @@
 			indices=[];
 
 		for(var i=0;i<l;i++){
-			x=Math.cos(angle*i);
-			z=Math.sin(angle*i);
+			x=r*Math.cos(angle*i);
+			z=r*Math.sin(angle*i);
 			pos=[x,-h/2,z];
 			theTa=Math.atan2(r,h);
 			normal=[x,r*Math.cos(theTa)*Math.sin(theTa),z];
@@ -248,6 +251,10 @@
 		}
 
 		return new Polygon(positions,normals,colors,new Uint8Array(indices));
+	}
+	
+	function Torus(ra,rb,l,color){
+		
 	}
 	
     function normalize(v) {
