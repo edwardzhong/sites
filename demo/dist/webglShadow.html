@@ -452,6 +452,7 @@ function mouseUp(e) {
     LENPERCENT = 1;
     canvas.removeEventListener('mouseup', arguments.callee, false);
     canvas.removeEventListener('mousemove', mouseMove, false);
+    canvas.removeEventListener('mouseout', mouseUp, false);
 }
 main();
 </script>
