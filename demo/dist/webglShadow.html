@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
-<title>阴影综合(多物体高精度pcf)</title>
+<title>阴影综合(多物体高精度PCF)</title>
 <link rel="stylesheet" href="../../css/pure-min.css">
 <link rel="stylesheet" href="../../css/fontello.css">
 <link rel="stylesheet" href="../css/style.css">
@@ -23,7 +23,7 @@
 		<div class="main grid">
 		<a class="page-list" href="../index.html">&larr;&nbsp;page list</a>
 		
-<h2>阴影综合(多物体高精度pcf)</h2>
+<h2>阴影综合(多物体高精度PCF)</h2>
 <p>拖动鼠标可旋转和缩放画面</p>
 <canvas id="canvas" width="600" height="450"></canvas>
  </div>
@@ -156,7 +156,7 @@
         // float depth = unpack(rgbaDepth); //将纹理颜色值(gl_fragColor)解析出阴影深度值z(光源视点)
         // float visibility = (shadowCoord.z > depth + bias) ? 0.6 : 1.0;//大于阴影的z轴,说明在阴影中并显示为阴影*0.6,否则为正常颜色*1.0
 
-        // pcf 消除阴影边缘的锯齿
+        // PCF 消除阴影边缘的锯齿
         float shadows =0.0;
         float opacity=0.6;// 阴影alpha值, 值越小暗度越深
         float texelSize=1.0/2048.0;// 阴影像素尺寸,值越小阴影越逼真
