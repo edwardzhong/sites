@@ -282,6 +282,7 @@ a {
 }
 
 .nav .menu-tabs .close{
+	float: none;
 	font-size: 16px;
 	padding-left: 5px;
 	font-style: normal;
