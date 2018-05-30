@@ -8,11 +8,6 @@
 <link rel="stylesheet" href="../../css/fontello.css">
 <link rel="stylesheet" href="../css/style.css">
 
-<style>
-    canvas{
-        background: #000;
-    }
-</style>
 
 <!--[if lt IE 9]>
 <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
@@ -38,9 +33,7 @@
 		</footer>
 	</div>
 
-<script src="../../js/webgl.js"></script>
-<script src="../../js/objParse.js"></script>
-<script src="../../js/matrix.js"></script>
+<!-- obj文件 -->
 <script type="text/template" id="tplObj">
 # Blender v2.79 (sub 0) OBJ File: 'plane1.blend'
 # www.blender.org
@@ -6917,7 +6910,9 @@ f 2807//1789 2325//1519 2599//1477 2793//1761
 f 2807//1789 2806//1827 2613//1515 2325//1519
 f 2181//1790 2469//1669 2709//1724 2517//1788
 f 2181//1790 2510//1763 2695//1630 2469//1669
+
 </script>
+<!-- mtl文件 -->
 <script type="text/template" id="tplMtl">
 # Blender MTL File: 'plane1.blend'
 # Material Count: 4
@@ -6961,12 +6956,14 @@ Ke 0.000000 0.000000 0.000000
 Ni 1.000000
 d 0.500000
 illum 2
+
 </script>
+<!-- 顶点着色器 -->
 <script type="x-shader/x-vertex" id="vs">
-attribute vec4 a_Position;//顶点位置
-attribute vec4 a_Color;//顶点颜色
-attribute vec4 a_Scolor;//顶点高光颜色
-attribute vec4 a_Normal;//法向量
+attribute vec4 a_position;//顶点位置
+attribute vec4 a_color;//顶点颜色
+attribute vec4 a_scolor;//顶点高光颜色
+attribute vec4 a_normal;//法向量
 uniform mat4 u_MvpMatrix;//mvp矩阵
 uniform mat4 u_ModelMatrix;//模型矩阵
 uniform mat4 u_NormalMatrix;
@@ -6976,15 +6973,17 @@ varying vec3 v_Normal;
 varying vec3 v_Position;
 
 void main() {
-    gl_Position = u_MvpMatrix * a_Position;
+    gl_Position = u_MvpMatrix * a_position;
     // 计算顶点在世界坐标系的位置，以便计算点光源在顶点处点位置
-    v_Position = vec3(u_ModelMatrix * a_Position);
-    v_Normal = normalize(vec3(u_NormalMatrix * a_Normal));
-    v_Color = a_Color;
-    v_Scolor = a_Scolor;
+    v_Position = vec3(u_ModelMatrix * a_position);
+    // 计算变换后的法向量
+    v_Normal = vec3(u_NormalMatrix * a_normal);
+    v_Color = a_color;
+    v_Scolor = a_scolor;
 }
 
 </script>
+<!-- 片元着色器 -->
 <script type="x-shader/x-fragment" id="fs">
 #ifdef GL_ES
 precision mediump float;
@@ -7004,13 +7003,16 @@ void main() {
     // 对法线归一化，因为其内插之后长度不一定是1
     vec3 normal = normalize(v_Normal);
     // 计算光线方向(光源位置-顶点位置)并归一化
-    vec3 lightDirection = normalize(u_LightPosition - v_Position);
+    // vec3 lightDirection = normalize(u_LightPosition - v_Position);
+    // 平行光
+    vec3 lightDirection = normalize(u_LightPosition);
     // 计算光线方向和法向量点积
     float nDotL = max(dot(lightDirection, normal), 0.0);
     // 漫反射光亮度
     vec3 diffuse = u_diffuseColor  * nDotL * v_Color.rgb;
     // 环境光亮度
     vec3 ambient = u_AmbientColor * v_Color.rgb;
+    // gl_FragColor = vec4(diffuse + ambient, v_Color.a);
 
     // 观察方向的单位向量V
     vec3 eyeDirection = normalize(u_viewPosition - v_Position.xyz);// 反射方向
@@ -7021,218 +7023,10 @@ void main() {
     vec3 specular =  u_specularColor.rgb * specularWeighting;
     gl_FragColor = vec4(ambient + diffuse + specular, v_Color.a);
 }
+
+	
 </script>
-<script>
-var canvas = document.getElementById('canvas'),
-    gl = get3DContext(canvas, true),
-    objElem = document.getElementById('tplObj'),
-    mtlElem = document.getElementById('tplMtl'),
-    notMan=true,
-    angleX = 0,
-    angleY = 0,
-    angleZ = 0,
-    viewAngleX=30,
-    viewAngleY=45,
-    viewLEN=15;
-
-function main() {
-    if (!gl) {
-        console.log('Failed to get the rendering context for WebGL');
-        return;
-    }
-
-    if (!createShaders(gl, 'fs', 'vs')) {
-        console.log('Failed to intialize shaders.');
-        return;
-    }
-
-    //获取变量地址
-    var program = gl.program;
-    program.a_Position = gl.getAttribLocation(gl.program, 'a_Position');
-    program.a_Color = gl.getAttribLocation(gl.program, 'a_Color');
-    program.a_Scolor = gl.getAttribLocation(gl.program, 'a_Scolor');
-    program.a_Normal = gl.getAttribLocation(gl.program, 'a_Normal');
-    if (program.a_Position < 0 ||program.a_Scolor<0|| program.a_Color < 0 || program.a_Normal < 0) {
-        console.log('Failed to get the storage location ');
-        return;
-    }
-    // 创建空数据缓冲
-    var vertexBuffer = createEmptyArrayBuffer(gl, program.a_Position, 3, gl.FLOAT);
-    var normalBuffer = createEmptyArrayBuffer(gl, program.a_Normal, 3, gl.FLOAT);
-    var colorBuffer = createEmptyArrayBuffer(gl, program.a_Color, 4, gl.FLOAT);
-    var scolorBuffer = createEmptyArrayBuffer(gl, program.a_Scolor, 4, gl.FLOAT);
-    var indexBuffer = gl.createBuffer();
-    if (!vertexBuffer || !normalBuffer || !colorBuffer ||!scolorBuffer|| !indexBuffer) { return; }
-    gl.bindBuffer(gl.ARRAY_BUFFER, null);
-
-    // 获取变量地址
-    var u_ModelMatrix = gl.getUniformLocation(gl.program, 'u_ModelMatrix');
-    var u_MvpMatrix = gl.getUniformLocation(gl.program, 'u_MvpMatrix');
-    var u_NormalMatrix = gl.getUniformLocation(gl.program, 'u_NormalMatrix');
-    var u_diffuseColor = gl.getUniformLocation(gl.program, 'u_diffuseColor');
-    var u_LightPosition = gl.getUniformLocation(gl.program, 'u_LightPosition');
-    var u_AmbientColor = gl.getUniformLocation(gl.program, 'u_AmbientColor');
-    var u_specularColor = gl.getUniformLocation(gl.program, 'u_specularColor');
-    var u_Shininess = gl.getUniformLocation(gl.program, 'u_Shininess');
-    var u_viewPosition = gl.getUniformLocation(gl.program, 'u_viewPosition');
-    if (!u_ModelMatrix || !u_MvpMatrix || !u_NormalMatrix || !u_diffuseColor || !u_LightPosition || !u_AmbientColor || !u_viewPosition||!u_specularColor) {
-        console.log('Failed to get the storage uniform location');
-        return;
-    }
-
-
-    // 分析模型字符串
-    var objDoc = new OBJDoc('plane',objElem.text,mtlElem.text);
-    if(!objDoc.parse(1, true)){return;}
-    var drawingInfo = objDoc.getDrawingInfo();
-
-    // 将数据写入缓冲区
-    gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
-    gl.bufferData(gl.ARRAY_BUFFER, drawingInfo.vertices, gl.STATIC_DRAW);
-
-    gl.bindBuffer(gl.ARRAY_BUFFER, normalBuffer);
-    gl.bufferData(gl.ARRAY_BUFFER, drawingInfo.normals, gl.STATIC_DRAW);
-
-    gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
-    gl.bufferData(gl.ARRAY_BUFFER, drawingInfo.colors, gl.STATIC_DRAW);
-
-    gl.bindBuffer(gl.ARRAY_BUFFER, scolorBuffer);
-    gl.bufferData(gl.ARRAY_BUFFER, drawingInfo.sColors, gl.STATIC_DRAW);
-
-    // Write the indices to the buffer object
-    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
-    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, drawingInfo.indices, gl.STATIC_DRAW);
-
-    // 设置背景颜色
-    gl.clearColor(0.0, 0.0, 0.0, 1.0);
-    // 开启隐藏面消除
-    gl.enable(gl.DEPTH_TEST);
-    // 设置支持透明
-    gl.enable (gl.BLEND);
-    // 设置混合函数
-    gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
-
-    // 光线方向(世界坐标系下)
-    gl.uniform3f(u_LightPosition, 0.0, 2.0, 12.0);
-    // 漫反射光照颜色
-    gl.uniform3f(u_diffuseColor, 1.0, 1.0, 1.0);
-    // 设置环境光颜色
-    gl.uniform3f(u_AmbientColor, 0.5, 0.5, 0.5);
-    // 设置高光颜色
-    gl.uniform3f(u_specularColor, 1, 1, 1);
-    // 镜面反射光泽度
-    gl.uniform1f(u_Shininess, 100.0);
-
-    var modelMatrix = new Matrix4();
-    var mvpMatrix = new Matrix4();
-    var normalMatrix = new Matrix4();
-    var n = drawingInfo.indices.length;
-
-    (function animate() {
-        // 模型矩阵
-        if(notMan){ angleY+=0.5; }
-        modelMatrix.setRotate(angleY % 360, 0, 1, 0); // 绕y轴旋转
-        modelMatrix.rotate(angleX % 360, 1, 0, 0); // 绕x轴旋转
-        modelMatrix.rotate(angleZ % 360, 0, 0, 1); // 绕z轴旋转
-
-        var eyeY=viewLEN*Math.sin(viewAngleY*Math.PI/180),
-            len=viewLEN*Math.cos(viewAngleY*Math.PI/180),
-            eyeX=len*Math.sin(viewAngleX*Math.PI/180),
-            eyeZ=len*Math.cos(viewAngleX*Math.PI/180);
-
-        gl.uniform3f(u_viewPosition, eyeX,eyeY,eyeZ);
-        // 视点投影
-        mvpMatrix.setPerspective(30, canvas.width / canvas.height, 1, 300);
-        mvpMatrix.lookAt(eyeX, eyeY, eyeZ, 0, 0, 0, 0, (viewAngleY>90||viewAngleY<-90)?-1:1, 0);
-        mvpMatrix.multiply(modelMatrix);
-        // 根据模型矩阵计算用来变换法向量的矩阵
-        normalMatrix.setInverseOf(modelMatrix);
-        normalMatrix.transpose();
-
-        // 模型矩阵
-        gl.uniformMatrix4fv(u_ModelMatrix, false, modelMatrix.elements);
-        // mvp矩阵
-        gl.uniformMatrix4fv(u_MvpMatrix, false, mvpMatrix.elements);
-        // 法向量矩阵
-        gl.uniformMatrix4fv(u_NormalMatrix, false, normalMatrix.elements);
-
-        // 清屏|清深度缓冲
-        gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-
-        // 根据顶点索引绘制图形(图形类型，绘制顶点个数，顶点索引数据类型，顶点索引中开始绘制的位置)
-        gl.drawElements(gl.TRIANGLES, n, gl.UNSIGNED_SHORT, 0);
-        // gl.drawArrays(gl.TRIANGLES, 0, 9);
-        requestAnimationFrame(animate);
-    }());
-}
-
-function createEmptyArrayBuffer(gl, a_attribute, num, type) {
-    var buffer = gl.createBuffer(); // Create a buffer object
-    if (!buffer) {
-        console.log('Failed to create the buffer object');
-        return null;
-    }
-    gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
-    gl.vertexAttribPointer(a_attribute, num, type, false, 0, 0); // Assign the buffer object to the attribute variable
-    gl.enableVertexAttribArray(a_attribute); // Enable the assignment
-
-    return buffer;
-}
-
-document.addEventListener('keydown',function(e){
-    if([37,38,39,65,58,83,87,40,69,81].indexOf(e.keyCode)>-1){
-        notMan=false;
-    }
-    switch(e.keyCode){
-        case 38:        //up
-            viewAngleY-=2;
-            if(viewAngleY<-270){
-                viewAngleY+=360
-            }
-            break;
-        case 40:        //down
-            viewAngleY+=2;
-            if(viewAngleY>270){
-                viewAngleY-=360
-            }
-            break;
-        case 37:        //left
-            viewAngleX+=2;
-            break;
-        case 39:        //right
-            viewAngleX-=2;
-            break;
-        case 87:        //w
-            angleX-=2;
-            break;
-        case 83:        //s
-            angleX+=2;
-            break;
-        case 65:        //a
-            angleY+=2;
-            break;
-        case 68:        //d
-            angleY-=2;
-            break;
-        case 81:        //q
-            angleZ-=2;
-            break;
-        case 69:        //e
-            angleZ+=2;
-            break;
-        case 187:       //zoom in
-            if(viewLEN>6) viewLEN--;
-            break;
-        case 189:       //zoom out
-            if(viewLEN<30) viewLEN++;
-            break;
-        default:break;
-    }
-},false);
-
-main();
-
-</script>
+<script src="../js/plane.js"></script>
 
 </body>
 </html>
