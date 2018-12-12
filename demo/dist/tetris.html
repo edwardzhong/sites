@@ -7,7 +7,6 @@
 <link rel="stylesheet" href="../../css/pure-min.css">
 <link rel="stylesheet" href="../../css/fontello.css">
 <link rel="stylesheet" href="../css/style.css">
-
 <style>
     .wrap{
         width: 600px;
@@ -201,7 +200,7 @@ class Stage{
         var that = this,
             l = Arr.length,
             startTime = new Date(),
-            t;
+            next = Object.assign([],Arr[Math.floor(Math.random()*l)]),t;
 
         that.shape = new Shape(Arr[Math.floor(Math.random()*l)]);
 
@@ -243,14 +242,15 @@ class Stage{
                         }
                         that.checkPoint();
                         that.speed = 500;
-                        that.shape = new Shape(Arr[Math.floor(Math.random()*l)]);
+                        that.shape = new Shape(next);
+                        next = Object.assign([],Arr[Math.floor(Math.random()*l)])
                     } else {
                         that.shape.move(0,1);   
                     }
                 }
                 ctx.clearRect(-40,-40,W*2,H*2);
                 that.drawUI().drawMaps();
-                that.shape.drawD().drawS();
+                that.shape.drawCurr().drawNext(next);
             }
             that.timer = requestAnimationFrame(animate);
         }());
@@ -272,7 +272,6 @@ class Stage{
 
 class Shape {
     constructor(m){
-        this.sm = Object.assign([],m);
         this.m = Object.assign([],m);
     }
     transform(){
@@ -322,19 +321,19 @@ class Shape {
         for(var i = 0,l = m.length;i < l; i=i+2){
             ctx.fillRect(m[i]*40,m[i+1]*40,40,40);
             ctx.strokeRect(m[i]*40+2,m[i+1]*40+2,38,38);
-        }       
+        }
     }
-    drawD(){
+    drawCurr(){
         ctx.save();
         this.draw(this.m);
         ctx.restore();
         return this;
     }
-    drawS(){
+    drawNext(m){
         ctx.save();
         ctx.translate(400,120);
         ctx.scale(0.7,0.7);
-        this.draw(this.sm);
+        this.draw(m);
         ctx.restore();
         return this;
     }
