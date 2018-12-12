@@ -7,6 +7,7 @@
 <link rel="stylesheet" href="../../css/pure-min.css">
 <link rel="stylesheet" href="../../css/fontello.css">
 <link rel="stylesheet" href="../css/style.css">
+
 <style>
     .wrap{
         width: 600px;
@@ -121,6 +122,7 @@ class Stage{
         ctx.save();
         ctx.fillStyle='hsla(0,100%,0%,.7)';
         ctx.fillText('score',560,20);
+        ctx.fillText('next',560,100);
         ctx.font = 'bold 30px arial';
         ctx.fillStyle='hsla(30,100%,50%,1)';
         ctx.fillText(this.score,560,60);
@@ -331,14 +333,13 @@ class Shape {
     }
     drawNext(m){
         ctx.save();
-        ctx.translate(400,120);
+        ctx.translate(400,130);
         ctx.scale(0.7,0.7);
         this.draw(m);
         ctx.restore();
         return this;
     }
 }
-
 new Stage().init().bindEvent();
 </script>
 
