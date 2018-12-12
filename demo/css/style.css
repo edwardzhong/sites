@@ -1,6 +1,7 @@
 
 html,body{
-  font-family:"Droid Sans","Helvetica Neue", Helvetica, "Hiragino Sans GB", "Microsoft YaHei", Arial, sans-serif;
+  // font-family:"Droid Sans","Helvetica Neue", Helvetica, "Hiragino Sans GB", "Microsoft YaHei", Arial, sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, "PingFang SC","Helvetica Neue",STHeiti,"Microsoft Yahei",Tahoma,Simsun,sans-serif;
   font-size: 14px;
   color: #555;
   height: 100%;
