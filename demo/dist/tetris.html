@@ -192,7 +192,7 @@ class Stage{
 
         document.addEventListener('keyup',function(e){
             if(e.keyCode==40){
-                that.d=0.98;
+                that.d=1;
                 that.speed=500;
             }
         },false);
@@ -279,11 +279,9 @@ class Shape {
     transform(){
         var m =this.m,
             l = m.length,
-            c = Math.ceil(l/2),
+            c = 4,
             x = m[c],
             y = m[c+1],
-            cos = Math.cos(Math.PI/180 * 90),
-            sin = Math.sin(Math.PI/180 * 90),
             min = 0,
             max = 0;
         if(Math.abs(m[2]-m[4])==1 && Math.abs(m[3]-m[5])==1) return;    
@@ -291,8 +289,8 @@ class Shape {
             if(i == c) continue;
             var mx = m[i]- x,
                 my = m[i+1] - y,
-                nx = mx*cos - my*sin,
-                ny = my*cos + mx*sin;
+                nx = my,
+                ny = -mx;
             m[i]=x+nx;
             m[i+1]=y+ny;
             max=Math.max(m[i]-11,max);
@@ -333,13 +331,13 @@ class Shape {
     }
     drawNext(m){
         ctx.save();
-        ctx.translate(400,130);
-        ctx.scale(0.7,0.7);
+        ctx.transform(0.7,0,0,0.7,400,130)
         this.draw(m);
         ctx.restore();
         return this;
     }
 }
+
 new Stage().init().bindEvent();
 </script>
 
