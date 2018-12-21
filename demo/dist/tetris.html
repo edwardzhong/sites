@@ -202,7 +202,7 @@ class Stage{
         var that = this,
             l = Arr.length,
             startTime = new Date(),
-            next = Object.assign([],Arr[Math.floor(Math.random()*l)]),t;
+            next = [...Arr[Math.floor(Math.random()*l)]],t;
 
         that.shape = new Shape(Arr[Math.floor(Math.random()*l)]);
 
@@ -245,7 +245,7 @@ class Stage{
                         that.checkPoint();
                         that.speed = 500;
                         that.shape = new Shape(next);
-                        next = Object.assign([],Arr[Math.floor(Math.random()*l)])
+                        next = [...Arr[Math.floor(Math.random()*l)]]
                     } else {
                         that.shape.move(0,1);   
                     }
@@ -265,7 +265,7 @@ class Stage{
             if(Math.min.apply(null,maps[i]) == 1){
                 that.maps.splice(i,1);
                 that.score+=10;
-                that.maps.unshift([0,0,0,0,0,0,0,0,0,0,0,0]);
+                that.maps.unshift(new Array(10).fill(0));
             }
         }
         return this;
@@ -289,8 +289,8 @@ class Shape {
             if(i == c) continue;
             var mx = m[i]- x,
                 my = m[i+1] - y,
-                nx = my,
-                ny = -mx;
+                nx = -my,
+                ny = mx;
             m[i]=x+nx;
             m[i+1]=y+ny;
             max=Math.max(m[i]-11,max);
@@ -337,7 +337,6 @@ class Shape {
         return this;
     }
 }
-
 new Stage().init().bindEvent();
 </script>
 
