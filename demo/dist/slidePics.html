@@ -29,7 +29,6 @@
 	}
 	.fl{float: left;}
 	.fr{float: right;}
-
 	.pics{
 		list-style-type: none;
 		margin: 0 30px;
@@ -48,9 +47,8 @@
 	.pics img{
 		width: 100%;
 		height: 100%;
-		opacity: 1;filter: alpha(opacity=100);
+		opacity: 1;
 	}
-
 </style>
 
 <!--[if lt IE 9]>
@@ -66,21 +64,21 @@
 			<h1><a href="../index.html">Jeff Zhong's Demo</a></h1>
 		</header>
 		<div class="main grid">
-		<a class="page-list" href="../index.html">&larr;&nbsp;page list</a>
+		<a class="effect-list" href="../index.html">&larr;&nbsp;effect list</a>
 		
 <h2>前后转换焦点图</h2>
 <div class="wrap">
 	<div id="leftBtn" class="btn fl"><i class="icon-left-open"></i></div>
 	<div id="rightBtn" class="btn fr"><i class="icon-right-open"></i></div>
 	<ul class="pics clearfix">
-		<li><img src="http://oncse3u6r.bkt.clouddn.com/matishi5.jpg" alt="" /></li>
-		<li><img src="http://oncse3u6r.bkt.clouddn.com/qicaidx7.jpg" alt="" /></li>
-		<li><img src="http://oncse3u6r.bkt.clouddn.com/yueyaquan3.jpg" alt="" /></li>
-		<li><img src="http://oncse3u6r.bkt.clouddn.com/yueliangwan3.jpg" alt="" /></li>
-		<li><img src="http://oncse3u6r.bkt.clouddn.com/jiahe11.jpg" alt="" /></li>
-		<li><img src="http://oncse3u6r.bkt.clouddn.com/mingshashan.jpg" alt="" /></li>
-		<li><img src="http://oncse3u6r.bkt.clouddn.com/mingshashan1.jpg" alt="" /></li>
-		<li><img src="http://oncse3u6r.bkt.clouddn.com/mingshashan2.jpg" alt="" /></li>
+		<li><img src="http://upload-images.jianshu.io/upload_images/127924-dec37275411437de.jpg" alt="" /></li>
+		<li><img src="http://upload-images.jianshu.io/upload_images/127924-84999ce72b31c3b5.jpg" alt="" /></li>
+		<li><img src="http://upload-images.jianshu.io/upload_images/127924-b06e44e6a17caf43.jpg" alt="" /></li>
+		<li><img src="http://upload-images.jianshu.io/upload_images/127924-8403145c3c922546.jpg" alt="" /></li>
+		<li><img src="http://upload-images.jianshu.io/upload_images/127924-4ef33634665463af.jpg" alt="" /></li>
+		<li><img src="http://upload-images.jianshu.io/upload_images/127924-0999617a887bb6a3.jpg" alt="" /></li>
+		<li><img src="http://upload-images.jianshu.io/upload_images/127924-b48e22b6aef713ae.jpg" alt="" /></li>
+		<li><img src="http://upload-images.jianshu.io/upload_images/127924-6e5e50300c4d219a.jpg" alt="" /></li>
 	</ul>
 </div>
  </div>
@@ -95,10 +93,10 @@ $(function(){
 	//轮播使用到的5张图片
 	var configs=[
 		{i:2,zIndex:5,opacity: 1,animate:{top:'0',left:'220px',width:'320px',height:'240px'}},
-		{i:1,zIndex:4,opacity: 0.5,animate:{top:'22px',left:'100px',width:'260px',height:'195px'}},
-		{i:3,zIndex:3,opacity: 0.5,animate:{top:'22px',left:'400px',width:'260px',height:'195px'}},
-		{i:0,zIndex:2,opacity: 0.2,animate:{top:'60px',left:'30px',width:'160px',height:'120px'}},
-		{i:4,zIndex:1,opacity: 0.2,animate:{top:'60px',left:'570px',width:'160px',height:'120px'}}
+		{i:1,zIndex:4,opacity: 0.7,animate:{top:'22px',left:'100px',width:'260px',height:'195px'}},
+		{i:3,zIndex:3,opacity: 0.7,animate:{top:'22px',left:'400px',width:'260px',height:'195px'}},
+		{i:0,zIndex:2,opacity: 0.5,animate:{top:'60px',left:'30px',width:'160px',height:'120px'}},
+		{i:4,zIndex:1,opacity: 0.5,animate:{top:'60px',left:'570px',width:'160px',height:'120px'}}
 	],
 	//隐藏的图片
 	hid={zIndex:0,top:'60px',left:'380px',width:'160px',height:'120px',opacity: 1,display:'none'},
