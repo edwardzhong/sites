@@ -56,7 +56,7 @@ function gestures (elem) {
                 dy:0
             });
         });
-    
+        document.getElementsByClassName('txt')[0].innerHTML = touches.length;
         elem.addEventListener('touchmove', touchMove);
         elem.addEventListener('touchend', touchLeave);
         elem.addEventListener('touchcancel', touchLeave);
@@ -64,6 +64,7 @@ function gestures (elem) {
 
     function touchMove (e) {
         var touches = e.touches||e.targetTouches;
+        document.getElementsByClassName('txt')[0].innerHTML = touches.length;
         Array.from(touches).forEach((t,i) => {
             var sel = fingers.filter(f => f.id == t.identifier);
             if(sel[0]){
