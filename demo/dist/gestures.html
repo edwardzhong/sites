@@ -69,7 +69,7 @@ function gestures (elem) {
         });
 
         if(fingers.length>1){ // 多点触控 => 旋转、缩放
-            document.getElementsByClassName('fin')[0].innerHTML = `${fingers[0].x}:${fingers[0].y}|${fingers[0].dx}:${fingers[0].dy} - ${fingers[1].x}:${fingers[1].y}|${fingers[1].dx}:${fingers[1].dy}`
+            document.getElementsByClassName('fin')[0].innerHTML = `${fingers[0].x}:${fingers[0].y}|${fingers[0].dx}:${fingers[0].dy} - ${fingers[1].x}:${fingers[1].y}|${fingers[1].dx}:${fingers[1].dy}`;
             var c = Math.sqrt(Math.pow(fingers[1].x-fingers[0].x,2) + Math.pow(fingers[1].y-fingers[0].y,2));
             var dc = Math.sqrt(Math.pow(fingers[1].dx-fingers[0].dx,2) + Math.pow(fingers[1].dy-fingers[0].dy,2));
             var scale = dc/c;
@@ -77,21 +77,21 @@ function gestures (elem) {
             args[0] = args[3] = Math.min(Math.max(scale,0.5),4);
             var rad= Math.atan2((fingers[1].y-fingers[0].y)-(fingers[1].dy-fingers[0].dy),(fingers[1].x-fingers[0].x)-(fingers[1].dx-fingers[0].dx));
             args[0]=args[0]*Math.cos(rad);
-            args[1]=-Math.sin(rad);
-            args[2]=Math.sin(rad);
+            args[1]=Math.sin(rad);
+            args[2]=-Math.sin(rad);
             args[3]=args[3]*Math.cos(rad);
-            document.getElementsByClassName('txt')[0].innerHTML = `${scale}:${rad*180/Math.PI}`
+            document.getElementsByClassName('txt')[0].innerHTML = `${scale}:${rad*180/Math.PI}`;
         } else { // 位移
             args[4]+=(fingers[0].dx-fingers[0].x);
             args[5]+=(fingers[0].dy-fingers[0].y);
             args[4]=Math.min(Math.max(args[4],0),ww-50);
             args[5]=Math.min(Math.max(args[5],0),wh-50);
             fingers.forEach(f=>{
-            f.x=f.dx;
-            f.y=f.dy;
-        });
+                f.x=f.dx;
+                f.y=f.dy;
+            });
         }
-
+        args = [1,0,0,1,0,0];
         elem.style.transform=`matrix(${args.join(',')})`;
     }
     function touchLeave (e) {
