@@ -56,7 +56,6 @@ function gestures (elem) {
                 dy:0
             });
         });
-        document.getElementsByClassName('txt')[0].innerHTML = touches.length;
         elem.addEventListener('touchmove', touchMove);
         elem.addEventListener('touchend', touchLeave);
         elem.addEventListener('touchcancel', touchLeave);
@@ -64,7 +63,6 @@ function gestures (elem) {
 
     function touchMove (e) {
         var touches = e.touches||e.targetTouches;
-        document.getElementsByClassName('txt')[0].innerHTML = touches.length;
         Array.from(touches).forEach((t,i) => {
             fingers[i].dx=t.pageX;
             fingers[i].dy=t.pageY;
@@ -87,6 +85,7 @@ function gestures (elem) {
             document.getElementsByClassName('fin')[0].innerHTML = `${fingers[0].x}:${fingers[0].y}|${fingers[0].dx}:${fingers[0].dy} - ${fingers[1].x}:${fingers[1].y}|${fingers[1].dx}:${fingers[1].dy}`
             var c = Math.sqrt(Math.pow(fingers[1].x-fingers[0].x,2) + Math.pow(finger[1].y-fingers[0].y,2));
             var dc = Math.sqrt(Math.pow(fingers[1].dx-fingers[0].dx,2) + Math.pow(finger[1].dy-fingers[0].dy,2));
+            document.getElementsByClassName('txt')[0].innerHTML = `${c}: ${dc}`
             args[0] = args[3]=Math.abs(dc/c);
             var rad= Math.atan2((finger[1].y-fingers[0].y)-(finger[1].dy-fingers[0].dy),(fingers[1].x-fingers[0].x)-(fingers[1].dx-fingers[0].dx));
             args[0]=args[0]*Math.cos(rad);
