@@ -52,8 +52,8 @@ body{
                         id: t.identifier,
                         x: t.pageX,
                         y: t.pageY,
-                        dx: 0,
-                        dy: 0
+                        dx:t.pageX,
+                        dy:t.pageY
                     });
                 });
                 elem.addEventListener('touchmove', touchMove);
@@ -77,13 +77,9 @@ body{
                     //缩放比例
                     var scale = Math.round(dc / c * 100) / 100;
                     scale = Math.min(Math.max(scale, 0.5), 4);
-                    if (fingers[1].x - fingers[0].x > 0 && fingers[1].y - fingers[0].y > 0) {
-                        args[0] = args[3] = scale * Math.cos(rad);
-                        args[1] = Math.sin(rad);
-                        args[2] = -Math.sin(rad);
-                    } else {
-                        args[0] = args[3] = scale;
-                    }
+                    args[0] = args[3] = scale * Math.cos(rad);
+                    args[1] = Math.sin(rad);
+                    args[2] = -Math.sin(rad);
                     document.getElementsByClassName('txt')[0].innerHTML = `${scale}:${rad * 180 / Math.PI}`;
                 } else { // 单点触控 => 位移
                     args[4] += (fingers[0].dx - fingers[0].x);
