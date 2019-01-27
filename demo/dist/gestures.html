@@ -88,7 +88,10 @@ function gestures (elem) {
             args[5]=Math.min(Math.max(args[5],0),wh-50);
         }
         elem.style.transform=`matrix(${args.join(',')})`;
-        args = [1,0,0,1,0,0];
+        args[0]=1;
+        args[1]=0;
+        args[2]=0;
+        args[3]=1;
     }
     function touchLeave (e) {
         fingers=[];//重置指纹列表
