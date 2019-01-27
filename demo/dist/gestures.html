@@ -56,7 +56,7 @@ function gestures (elem) {
                 dy:0
             });
         });
-        console.log(fingers);
+        document.getElementsByClassName('txt')[0].innerHTML=touches.length;
         elem.addEventListener('touchmove', touchMove);
         elem.addEventListener('touchend', touchLeave);
         elem.addEventListener('touchcancel', touchLeave);
@@ -89,7 +89,7 @@ function gestures (elem) {
             args[5]=Math.min(Math.max(args[5],0),wh-50);
         }
 
-        document.getElementsByClassName('txt')[0].innerHTML = args.join(',');
+        // document.getElementsByClassName('txt')[0].innerHTML = args.join(',');
 
         fingers.forEach(f=>{
             f.x=f.dx;
