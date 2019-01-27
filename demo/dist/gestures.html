@@ -70,6 +70,13 @@ function gestures (elem) {
             //     sel[0].dx=t.pageX;
             //     sel[0].dy=t.pageY;
             // }
+            fingers.push({
+                id:t.identifier,
+                x:t.pageX,
+                y:t.pageY,
+                dx:0,
+                dy:0
+            });
         });
 
         if(fingers.length>1){ // 多点触控 =》旋转、缩放
@@ -89,7 +96,7 @@ function gestures (elem) {
             args[5]=Math.min(Math.max(args[5],0),wh-50);
         }
 
-        // document.getElementsByClassName('txt')[0].innerHTML = args.join(',');
+        document.getElementsByClassName('txt')[0].innerHTML = fingers.length;
 
         fingers.forEach(f=>{
             f.x=f.dx;
