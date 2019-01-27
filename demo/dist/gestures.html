@@ -86,13 +86,13 @@ function gestures (elem) {
             args[5]+=(fingers[0].dy-fingers[0].y);
             args[4]=Math.min(Math.max(args[4],0),ww-50);
             args[5]=Math.min(Math.max(args[5],0),wh-50);
-            fingers.forEach(f=>{
+            fingers.forEach(f => {
                 f.x=f.dx;
                 f.y=f.dy;
             });
         }
-        args = [1,0,0,1,0,0];
         elem.style.transform=`matrix(${args.join(',')})`;
+        args = [1,0,0,1,0,0];
     }
     function touchLeave (e) {
         fingers=[];//重置指纹列表
