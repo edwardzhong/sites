@@ -56,7 +56,7 @@ function gestures (elem) {
                 dy:0
             });
         });
-        document.getElementsByClassName('txt')[0].innerHTML=touches.length;
+    
         elem.addEventListener('touchmove', touchMove);
         elem.addEventListener('touchend', touchLeave);
         elem.addEventListener('touchcancel', touchLeave);
@@ -65,11 +65,11 @@ function gestures (elem) {
     function touchMove (e) {
         var touches = e.touches||e.targetTouches;
         Array.from(touches).forEach((t,i) => {
-            var sel = fingers.filter(f => f.id == t.identifier);
-            if(sel[0]){
-                sel[0].dx=t.pageX;
-                sel[0].dy=t.pageY;
-            }
+            // var sel = fingers.filter(f => f.id == t.identifier);
+            // if(sel[0]){
+            //     sel[0].dx=t.pageX;
+            //     sel[0].dy=t.pageY;
+            // }
         });
 
         if(fingers.length>1){ // 多点触控 =》旋转、缩放
