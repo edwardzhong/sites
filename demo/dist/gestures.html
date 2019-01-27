@@ -73,11 +73,12 @@ function gestures (elem) {
             var c = Math.sqrt(Math.pow(fingers[1].x-fingers[0].x,2) + Math.pow(fingers[1].y-fingers[0].y,2));
             var dc = Math.sqrt(Math.pow(fingers[1].dx-fingers[0].dx,2) + Math.pow(fingers[1].dy-fingers[0].dy,2));
             var scale = dc/c;
+            scale=Math.round(scale*100)/100;
             args[0] = args[3] = Math.min(Math.max(scale,0.5),4);
             var rad= Math.atan2((fingers[1].y-fingers[0].y)-(fingers[1].dy-fingers[0].dy),(fingers[1].x-fingers[0].x)-(fingers[1].dx-fingers[0].dx));
             args[0]=args[0]*Math.cos(rad);
-            args[1]=Math.sin(rad);
-            args[2]=-Math.sin(rad);
+            args[1]=-Math.sin(rad);
+            args[2]=Math.sin(rad);
             args[3]=args[3]*Math.cos(rad);
             document.getElementsByClassName('txt')[0].innerHTML = `${scale}:${rad*180/Math.PI}`
         } else { // 位移
