@@ -39,7 +39,8 @@ body{
     </div>
     <script type="text/javascript">
         var ww = window.innerWidth || document.body.clientWidth,
-            wh = window.innerHeight || document.body.clientHeight;
+            wh = window.innerHeight || document.body.clientHeight,
+            timer;
 
         function gestures(elem) {
             var fingers = [],
@@ -69,6 +70,9 @@ body{
                 });
 
                 if (fingers.length > 1) { // 多点触控 => 旋转、缩放
+                    if(fingers[1].x < fingers[0].x){
+                        fingers.reverse();
+                    }
                     document.getElementsByClassName('fin')[0].innerHTML = `${fingers[0].x}:${fingers[0].y}|${fingers[0].dx}:${fingers[0].dy} - ${fingers[1].x}:${fingers[1].y}|${fingers[1].dx}:${fingers[1].dy}`;
                     var c = Math.sqrt(Math.pow(fingers[1].x - fingers[0].x, 2) + Math.pow(fingers[1].y - fingers[0].y, 2));
                     var dc = Math.sqrt(Math.pow(fingers[1].dx - fingers[0].dx, 2) + Math.pow(fingers[1].dy - fingers[0].dy, 2));
@@ -89,9 +93,8 @@ body{
                     fingers[0].x = fingers[0].dx;
                     fingers[0].y = fingers[0].dy;
                 }
-                setTimeout(()=>{
-                    elem.style.transform = `matrix(${args.join(',')})`;
-                },100);
+
+                elem.style.transform = `matrix(${args.join(',')})`;
             }
             function touchLeave(e) {
                 fingers = [];//重置指纹列表
