@@ -40,7 +40,7 @@ body{
     <script type="text/javascript">
         var ww = window.innerWidth || document.body.clientWidth,
             wh = window.innerHeight || document.body.clientHeight,
-            timer;
+            first = true;
 
         function gestures(elem) {
             var fingers = [],
@@ -70,8 +70,9 @@ body{
                 });
 
                 if (fingers.length > 1) { // 多点触控 => 旋转、缩放
-                    if(fingers[1].x < fingers[0].x){
+                    if(fingers[1].x < fingers[0].x && first){// 
                         fingers.reverse();
+                        first = false;
                     }
                     document.getElementsByClassName('fin')[0].innerHTML = `${fingers[0].x}:${fingers[0].y}|${fingers[0].dx}:${fingers[0].dy} - ${fingers[1].x}:${fingers[1].y}|${fingers[1].dx}:${fingers[1].dy}`;
                     var c = Math.sqrt(Math.pow(fingers[1].x - fingers[0].x, 2) + Math.pow(fingers[1].y - fingers[0].y, 2));
