@@ -72,14 +72,16 @@ function gestures (elem) {
             document.getElementsByClassName('fin')[0].innerHTML = `${fingers[0].x}:${fingers[0].y}|${fingers[0].dx}:${fingers[0].dy} - ${fingers[1].x}:${fingers[1].y}|${fingers[1].dx}:${fingers[1].dy}`;
             var c = Math.sqrt(Math.pow(fingers[1].x-fingers[0].x,2) + Math.pow(fingers[1].y-fingers[0].y,2));
             var dc = Math.sqrt(Math.pow(fingers[1].dx-fingers[0].dx,2) + Math.pow(fingers[1].dy-fingers[0].dy,2));
+            //旋转的弧度
             var rad= Math.atan2((fingers[1].y-fingers[0].y)-(fingers[1].dy-fingers[0].dy),(fingers[1].x-fingers[0].x)-(fingers[1].dx-fingers[0].dx));
+            //缩放比例
             var scale=Math.round(dc/c*100)/100;
             scale= Math.min(Math.max(scale,0.5),4);
             args[0]=args[3]=scale*Math.cos(rad);
             args[1]=Math.sin(rad);
             args[2]=-Math.sin(rad);
             document.getElementsByClassName('txt')[0].innerHTML = `${scale}:${rad*180/Math.PI}`;
-        } else { // 位移
+        } else { // 单点触控 => 位移
             args[4]=(fingers[0].dx-fingers[0].x);
             args[5]=(fingers[0].dy-fingers[0].y);
             args[4]=Math.min(Math.max(args[4],0),ww-50);
