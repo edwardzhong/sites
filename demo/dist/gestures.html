@@ -83,11 +83,11 @@ function gestures (elem) {
 
         if(fingers.length>1){ // 多点触控 => 旋转、缩放
             document.getElementsByClassName('fin')[0].innerHTML = `${fingers[0].x}:${fingers[0].y}|${fingers[0].dx}:${fingers[0].dy} - ${fingers[1].x}:${fingers[1].y}|${fingers[1].dx}:${fingers[1].dy}`
-            var c = Math.sqrt(Math.pow(fingers[1].x-fingers[0].x,2) + Math.pow(finger[1].y-fingers[0].y,2));
-            var dc = Math.sqrt(Math.pow(fingers[1].dx-fingers[0].dx,2) + Math.pow(finger[1].dy-fingers[0].dy,2));
+            var c = Math.sqrt(Math.pow(fingers[1].x-fingers[0].x,2) + Math.pow(fingers[1].y-fingers[0].y,2));
+            var dc = Math.sqrt(Math.pow(fingers[1].dx-fingers[0].dx,2) + Math.pow(fingers[1].dy-fingers[0].dy,2));
             document.getElementsByClassName('txt')[0].innerHTML = `${c}: ${dc}`
-            args[0] = args[3]=Math.abs(dc/c);
-            var rad= Math.atan2((finger[1].y-fingers[0].y)-(finger[1].dy-fingers[0].dy),(fingers[1].x-fingers[0].x)-(fingers[1].dx-fingers[0].dx));
+            args[0] = args[3] = Math.abs(dc/c);
+            var rad= Math.atan2((fingers[1].y-fingers[0].y)-(fingers[1].dy-fingers[0].dy),(fingers[1].x-fingers[0].x)-(fingers[1].dx-fingers[0].dx));
             args[0]=args[0]*Math.cos(rad);
             args[1]=-Math.sin(rad);
             args[2]=Math.sin(rad);
