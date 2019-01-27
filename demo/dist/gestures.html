@@ -73,7 +73,7 @@ body{
                     var c = Math.sqrt(Math.pow(fingers[1].x - fingers[0].x, 2) + Math.pow(fingers[1].y - fingers[0].y, 2));
                     var dc = Math.sqrt(Math.pow(fingers[1].dx - fingers[0].dx, 2) + Math.pow(fingers[1].dy - fingers[0].dy, 2));
                     //旋转的弧度
-                    var rad = Math.atan2((fingers[1].dy - fingers[0].dy), (fingers[1].dx - fingers[0].dx));
+                    var rad = Math.atan2((fingers[1].dy - fingers[0].dy)- (fingers[1].y - fingers[0].y), (fingers[1].dx - fingers[0].dx) - (fingers[1].x - fingers[0].x));
                     //缩放比例
                     var scale = Math.round(dc / c * 100) / 100;
                     scale = Math.min(Math.max(scale, 0.5), 4);                    
