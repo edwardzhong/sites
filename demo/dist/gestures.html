@@ -91,7 +91,7 @@ function gestures (elem) {
             // args[1]=-Math.sin(rad);
             // args[2]=Math.sin(rad);
             // args[3]=args[3]*Math.cos(rad);
-            document.getElementsByClassName('txt')[0].innerHTML = `${c}:${dc}:${rad}`
+            document.getElementsByClassName('txt')[0].innerHTML = `${c}:${dc}:${rad*180/Math.PI}`
         } else { // 位移
             args[4]+=(fingers[0].dx-fingers[0].x);
             args[5]+=(fingers[0].dy-fingers[0].y);
