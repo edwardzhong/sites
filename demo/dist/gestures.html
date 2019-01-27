@@ -66,22 +66,25 @@ function gestures (elem) {
         var touches = e.touches||e.targetTouches;
         document.getElementsByClassName('txt')[0].innerHTML = touches.length;
         Array.from(touches).forEach((t,i) => {
-            var sel = fingers.filter(f => f.id == t.identifier);
-            if(sel[0]){
-                sel[0].dx=t.pageX;
-                sel[0].dy=t.pageY;
-            } else {
-                fingers.push({
-                    id:t.identifier,
-                    x:t.pageX,
-                    y:t.pageY,
-                    dx:0,
-                    dy:0
-                });
-            }
+            fingers[i].dx=t.pageX;
+            fingers[i].dy=t.pageY;
+            // var sel = fingers.filter(f => f.id == t.identifier);
+            // if(sel[0]){
+            //     sel[0].dx=t.pageX;
+            //     sel[0].dy=t.pageY;
+            // } else {
+            //     fingers.push({
+            //         id:t.identifier,
+            //         x:t.pageX,
+            //         y:t.pageY,
+            //         dx:0,
+            //         dy:0
+            //     });
+            // }
         });
 
-        if(fingers.length>1){ // 多点触控 =》旋转、缩放
+        if(fingers.length>1){ // 多点触控 => 旋转、缩放
+            document.getElementsByClassName('fin')[0].innerHTML = `${fingers[1].dx}:${fingers[1].dy}`
             var c = Math.sqrt(Math.pow(fingers[1].x-fingers[0].x,2) + Math.pow(finger[1].y-fingers[0].y,2));
             var dc = Math.sqrt(Math.pow(fingers[1].dx-fingers[0].dx,2) + Math.pow(finger[1].dy-fingers[0].dy,2));
             args[0] = args[3]=Math.abs(dc/c);
