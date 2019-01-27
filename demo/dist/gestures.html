@@ -76,8 +76,8 @@ function gestures (elem) {
             args[0] = args[3] = Math.min(Math.max(scale,0.5),4);
             var rad= Math.atan2((fingers[1].y-fingers[0].y)-(fingers[1].dy-fingers[0].dy),(fingers[1].x-fingers[0].x)-(fingers[1].dx-fingers[0].dx));
             args[0]=args[0]*Math.cos(rad);
-            args[1]=-Math.sin(rad);
-            args[2]=Math.sin(rad);
+            args[1]=Math.sin(rad);
+            args[2]=-Math.sin(rad);
             args[3]=args[3]*Math.cos(rad);
             document.getElementsByClassName('txt')[0].innerHTML = `${scale}:${rad*180/Math.PI}`
         } else { // 位移
