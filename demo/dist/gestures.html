@@ -77,7 +77,7 @@ function gestures (elem) {
             //缩放比例
             var scale=Math.round(dc/c*100)/100;
             scale= Math.min(Math.max(scale,0.5),4);
-            args[0]=args[3]=args[0]*scale*Math.cos(rad);
+            args[0]=args[3]=scale*Math.cos(rad);
             args[1]=args[1]*Math.sin(rad);
             args[2]=-args[2]*Math.sin(rad);
             document.getElementsByClassName('txt')[0].innerHTML = `${scale}:${rad*180/Math.PI}`;
