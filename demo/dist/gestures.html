@@ -79,17 +79,17 @@ function gestures (elem) {
             // args[1]=-Math.sin(rad);
             // args[2]=Math.sin(rad);
             // args[3]=args[3]*Math.cos(rad);
-            document.getElementsByClassName('txt')[0].innerHTML = `${c}:${dc}:${rad*180/Math.PI}`
+            document.getElementsByClassName('txt')[0].innerHTML = `${scale}:${rad*180/Math.PI}`
         } else { // 位移
             args[4]+=(fingers[0].dx-fingers[0].x);
             args[5]+=(fingers[0].dy-fingers[0].y);
             args[4]=Math.min(Math.max(args[4],0),ww-50);
             args[5]=Math.min(Math.max(args[5],0),wh-50);
-            fingers.forEach(f=>{
-                f.x=f.dx;
-                f.y=f.dy;
-            });
         }
+        fingers.forEach(f=>{
+            f.x=f.dx;
+            f.y=f.dy;
+        });
         elem.style.transform=`matrix(${args.join(',')})`;
     }
     function touchLeave (e) {
