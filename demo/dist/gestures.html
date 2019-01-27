@@ -88,10 +88,10 @@ function gestures (elem) {
 
         // document.getElementsByClassName('txt')[0].innerHTML = fingers.length;
 
-        fingers.forEach(f=>{
-            f.x=f.dx;
-            f.y=f.dy;
-        });
+        // fingers.forEach(f=>{
+        //     f.x=f.dx;
+        //     f.y=f.dy;
+        // });
         elem.style.transform=`matrix(${args.join(',')})`;
     }
     function touchLeave (e) {
