@@ -89,7 +89,9 @@ body{
                     fingers[0].x = fingers[0].dx;
                     fingers[0].y = fingers[0].dy;
                 }
-                elem.style.transform = `matrix(${args.join(',')})`;
+                setTimeout(()=>{
+                    elem.style.transform = `matrix(${args.join(',')})`;
+                },100);
             }
             function touchLeave(e) {
                 fingers = [];//重置指纹列表
