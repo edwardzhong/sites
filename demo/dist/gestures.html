@@ -85,14 +85,13 @@ function gestures (elem) {
             document.getElementsByClassName('fin')[0].innerHTML = `${fingers[0].x}:${fingers[0].y}|${fingers[0].dx}:${fingers[0].dy} - ${fingers[1].x}:${fingers[1].y}|${fingers[1].dx}:${fingers[1].dy}`
             var c = Math.sqrt(Math.pow(fingers[1].x-fingers[0].x,2) + Math.pow(fingers[1].y-fingers[0].y,2));
             var dc = Math.sqrt(Math.pow(fingers[1].dx-fingers[0].dx,2) + Math.pow(fingers[1].dy-fingers[0].dy,2));
-            document.getElementsByClassName('txt')[0].innerHTML = `${c}: ${dc}`
-            args[0] = args[3] = Math.abs(dc/c);
+            args[0] = args[3] = dc/c;
             var rad= Math.atan2((fingers[1].y-fingers[0].y)-(fingers[1].dy-fingers[0].dy),(fingers[1].x-fingers[0].x)-(fingers[1].dx-fingers[0].dx));
-            args[0]=args[0]*Math.cos(rad);
-            args[1]=-Math.sin(rad);
-            args[2]=Math.sin(rad);
-            args[3]=args[3]*Math.cos(rad);
-            document.getElementsByClassName('fin')[0].innerHTML = `${c}, ${dc}, ${rad}`
+            // args[0]=args[0]*Math.cos(rad);
+            // args[1]=-Math.sin(rad);
+            // args[2]=Math.sin(rad);
+            // args[3]=args[3]*Math.cos(rad);
+            document.getElementsByClassName('txt')[0].innerHTML = `${c}:${dc}:${rad}`
         } else { // 位移
             args[4]+=(fingers[0].dx-fingers[0].x);
             args[5]+=(fingers[0].dy-fingers[0].y);
