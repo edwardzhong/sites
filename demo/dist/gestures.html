@@ -66,19 +66,6 @@ function gestures (elem) {
         Array.from(touches).forEach((t,i) => {
             fingers[i].dx=t.pageX;
             fingers[i].dy=t.pageY;
-            // var sel = fingers.filter(f => f.id == t.identifier);
-            // if(sel[0]){
-            //     sel[0].dx=t.pageX;
-            //     sel[0].dy=t.pageY;
-            // } else {
-            //     fingers.push({
-            //         id:t.identifier,
-            //         x:t.pageX,
-            //         y:t.pageY,
-            //         dx:0,
-            //         dy:0
-            //     });
-            // }
         });
 
         if(fingers.length>1){ // 多点触控 => 旋转、缩放
