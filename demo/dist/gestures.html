@@ -1,11 +1,13 @@
 <!DOCTYPE html>
-<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
-<meta http-equiv="X-UA-Compatible" content="ie=edge">
-<title>gestures</title>
+<title>手势</title>
+<link rel="stylesheet" href="../../css/pure-min.css">
+<link rel="stylesheet" href="../../css/fontello.css">
+<link rel="stylesheet" href="../css/style.css">
+
 <style>
 html{width: 100%;height: 100%;}
 body{
@@ -30,82 +32,102 @@ body{
     height: 100%;
 }
 </style>
+
+<!--[if lt IE 9]>
+<script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+<![endif]-->
 </head>
 <body>
-    <div class="container">
-        <div class="fin"></div>
-        <div class="txt"></div>
-        <div class="img"><img src="http://upload-images.jianshu.io/upload_images/127924-dec37275411437de.jpg" alt="abc"></div>
-    </div>
-    <script type="text/javascript">
-        var ww = window.innerWidth || document.body.clientWidth,
-            wh = window.innerHeight || document.body.clientHeight,
-            first = true;
+	<div class="content">
+		<a class="github" href="https://github.com/edwardzhong">
+			<img src="../img/github.png" alt="">
+		</a>
+		<header class="header">
+			<h1><a href="../index.html">Jeff Zhong's Demo</a></h1>
+		</header>
+		<div class="main grid">
+		<a class="effect-list" href="../index.html">&larr;&nbsp;effect list</a>
+		
+<h2>CSS3实现触摸手势</h2>
+<div class="container">
+    <div class="img"><img src="http://upload-images.jianshu.io/upload_images/127924-dec37275411437de.jpg" alt="abc"></div>
+</div>
+ </div>
+		<footer class="footer">
+			<p>Copyright &copy; 2017 <a href="https://github.com/edwardzhong">Jeff Zhong</a></p>
+		</footer>
+	</div>
 
-        function gestures(elem) {
-            var fingers = [],
-                args = [1, 0, 0, 1, 0, 0];
+<script type="text/javascript">
+    var ww = window.innerWidth || document.body.clientWidth,
+        wh = window.innerHeight || document.body.clientHeight,
+        first = true;
 
-            elem.addEventListener('touchstart', function (e) {
-                var touches = e.touches || e.targetTouches;
-                Array.from(touches).forEach(t => {
-                    fingers.push({
-                        id: t.identifier,
-                        x: t.pageX,
-                        y: t.pageY,
-                        dx:t.pageX,
-                        dy:t.pageY
-                    });
+    function gestures(elem) {
+        var fingers = [],
+            args = [1, 0, 0, 1, 0, 0];
+
+        elem.addEventListener('touchstart', function (e) {
+            var touches = e.touches || e.targetTouches;
+            Array.from(touches).forEach(t => {
+                fingers.push({
+                    id: t.identifier,
+                    x: t.pageX,
+                    y: t.pageY,
+                    dx:t.pageX,
+                    dy:t.pageY
                 });
-                elem.addEventListener('touchmove', touchMove);
-                elem.addEventListener('touchend', touchLeave);
-                elem.addEventListener('touchcancel', touchLeave);
+            });
+            elem.addEventListener('touchmove', touchMove);
+            elem.addEventListener('touchend', touchLeave);
+            elem.addEventListener('touchcancel', touchLeave);
+        });
+
+        function touchMove(e) {
+            var touches = e.touches || e.targetTouches;
+            Array.from(touches).forEach((t, i) => {
+                fingers[i].dx = t.pageX;
+                fingers[i].dy = t.pageY;
             });
 
-            function touchMove(e) {
-                var touches = e.touches || e.targetTouches;
-                Array.from(touches).forEach((t, i) => {
-                    fingers[i].dx = t.pageX;
-                    fingers[i].dy = t.pageY;
-                });
+            if (fingers.length > 1) { // 多点触控 => 旋转、缩放
 
-                if (fingers.length > 1) { // 多点触控 => 旋转、缩放
-
-                    document.getElementsByClassName('fin')[0].innerHTML = `${fingers[0].x}:${fingers[0].y}|${fingers[0].dx}:${fingers[0].dy} - ${fingers[1].x}:${fingers[1].y}|${fingers[1].dx}:${fingers[1].dy}`;
-                    var c = Math.sqrt(Math.pow(fingers[1].x - fingers[0].x, 2) + Math.pow(fingers[1].y - fingers[0].y, 2));
-                    var dc = Math.sqrt(Math.pow(fingers[1].dx - fingers[0].dx, 2) + Math.pow(fingers[1].dy - fingers[0].dy, 2));
-                    //旋转的弧度
-                    var rad = Math.atan2((fingers[1].dy - fingers[0].dy)- (fingers[1].y - fingers[0].y), (fingers[1].dx - fingers[0].dx) - (fingers[1].x - fingers[0].x));
-                    if(fingers[1].x < fingers[0].x && first){// 
-                        first = false;
-                        red=Math.PI-rad;
-                    }
-                    //缩放比例
-                    var scale = Math.round(dc / c * 100) / 100;
-                    scale = Math.min(Math.max(scale, 0.5), 4);                    
-                    args[0] = args[3] = scale * Math.cos(rad);
-                    args[1] = Math.sin(rad);
-                    args[2] = -Math.sin(rad);
-                    document.getElementsByClassName('txt')[0].innerHTML = `${scale}:${rad * 180 / Math.PI}`;
-                } else { // 单点触控 => 位移
-                    args[4] += (fingers[0].dx - fingers[0].x);
-                    args[5] += (fingers[0].dy - fingers[0].y);
-                    args[4] = Math.min(Math.max(args[4], 0), ww - 50);
-                    args[5] = Math.min(Math.max(args[5], 0), wh - 50);
-                    fingers[0].x = fingers[0].dx;
-                    fingers[0].y = fingers[0].dy;
+                document.getElementsByClassName('fin')[0].innerHTML = `${fingers[0].x}:${fingers[0].y}|${fingers[0].dx}:${fingers[0].dy} - ${fingers[1].x}:${fingers[1].y}|${fingers[1].dx}:${fingers[1].dy}`;
+                var c = Math.sqrt(Math.pow(fingers[1].x - fingers[0].x, 2) + Math.pow(fingers[1].y - fingers[0].y, 2));
+                var dc = Math.sqrt(Math.pow(fingers[1].dx - fingers[0].dx, 2) + Math.pow(fingers[1].dy - fingers[0].dy, 2));
+                //旋转的弧度
+                var rad = Math.atan2((fingers[1].dy - fingers[0].dy)- (fingers[1].y - fingers[0].y), (fingers[1].dx - fingers[0].dx) - (fingers[1].x - fingers[0].x));
+                if(fingers[1].x < fingers[0].x && first){// 
+                    first = false;
+                    red=Math.PI-rad;
                 }
+                //缩放比例
+                var scale = Math.round(dc / c * 100) / 100;
+                scale = Math.min(Math.max(scale, 0.5), 4);                    
+                args[0] = args[3] = scale * Math.cos(rad);
+                args[1] = Math.sin(rad);
+                args[2] = -Math.sin(rad);
+                document.getElementsByClassName('txt')[0].innerHTML = `${scale}:${rad * 180 / Math.PI}`;
+            } else { // 单点触控 => 位移
+                args[4] += (fingers[0].dx - fingers[0].x);
+                args[5] += (fingers[0].dy - fingers[0].y);
+                args[4] = Math.min(Math.max(args[4], 0), ww - 50);
+                args[5] = Math.min(Math.max(args[5], 0), wh - 50);
+                fingers[0].x = fingers[0].dx;
+                fingers[0].y = fingers[0].dy;
+            }
 
-                elem.style.transform = `matrix(${args.join(',')})`;
-            }
-            function touchLeave(e) {
-                fingers = [];//重置指纹列表
-                elem.removeEventListener('touchmove', touchMove)
-                elem.removeEventListener('touchend', touchLeave)
-                elem.removeEventListener('touchcancel', touchLeave)
-            }
+            elem.style.transform = `matrix(${args.join(',')})`;
         }
-        gestures(document.getElementsByClassName('img')[0]);
-    </script>
+        function touchLeave(e) {
+            fingers = [];//重置指纹列表
+            elem.removeEventListener('touchmove', touchMove)
+            elem.removeEventListener('touchend', touchLeave)
+            elem.removeEventListener('touchcancel', touchLeave)
+        }
+    }
+    gestures(document.getElementsByClassName('img')[0]);
+</script>
+
 </body>
 </html>
