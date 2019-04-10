@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+<title>画多边形例子</title>
+<link rel="stylesheet" href="../../css/pure-min.css">
+<link rel="stylesheet" href="../../css/fontello.css">
+<link rel="stylesheet" href="../css/style.css">
+
+<style>
+    canvas {
+        border: 1px solid #eee;
+    }
+    button{
+        padding: 5px 30px;
+        margin-left: 700px;
+        border:1px solid hsl(200,100%,45%);
+        border-radius: 4px;
+        background-color: hsl(200,100%,50%);
+        color: #fff;
+        outline: none;
+        cursor: pointer;
+    }
+    button:hover{
+        background-color: hsl(200,100%,45%);
+    }
+</style>
+
+<!--[if lt IE 9]>
+<script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+<![endif]-->
+</head>
+<body>
+	<div class="content">
+		<a class="github" href="https://github.com/edwardzhong">
+			<img src="../img/github.png" alt="">
+		</a>
+		<header class="header">
+			<h1><a href="../index.html">Jeff Zhong's Demo</a></h1>
+		</header>
+		<div class="main grid">
+		<a class="effect-list" href="../index.html">&larr;&nbsp;effect list</a>
+		
+<h2>画多边形例子</h2>
+<p>鼠标单击画布，然后移动鼠标，回车确认图形</p>
+<p>下边清除按钮</p>
+<canvas id="canvas" width="800" height="500"></canvas>
+<button id="btn">清除</button>
+ </div>
+		<footer class="footer">
+			<p>Copyright &copy; 2017 <a href="https://github.com/edwardzhong">Jeff Zhong</a></p>
+		</footer>
+	</div>
+
+<script>
+var canvas = document.getElementById('canvas');
+var ctx = canvas.getContext('2d');
+var H = canvas.height;
+var W = canvas.width;
+var points = [];
+var isDraw = false;
+var imgData = null;
+
+ctx.lineWidth = 0.5;
+ctx.fillStyle = 'hsla(0,100%,50%,.3)';
+ctx.strokeStyle = 'hsl(0,100%,50%)';
+
+canvas.addEventListener('mousedown', function(e) {
+    var pos = windowToCanvas(canvas, e.clientX, e.clientY);
+    points.push(pos);
+    isDraw = true;
+    canvas.style.cursor='crosshair';
+}, false);
+
+canvas.addEventListener('mousemove', function (e) {
+    if(!isDraw) return;
+    var pos = windowToCanvas(canvas, e.clientX, e.clientY);
+    ctx.save();
+    ctx.beginPath();
+    points.forEach((p,i) => {
+        ctx[i!=0?'lineTo':'moveTo'](p.x,p.y);
+    });
+    ctx.lineTo(pos.x,pos.y);
+    clear();
+    ctx.stroke();
+    ctx.fill();
+    ctx.restore();
+}, false);
+
+document.onkeydown=function(e){
+    if(e.keyCode == 13){
+        canvas.style.cursor='pointer';
+        isDraw = false;
+        points=[];
+        imgData=ctx.getImageData(0,0,W,H);
+        ctx.putImageData(imgData,0,0);
+    }
+}
+document.getElementById('btn').onclick=function(e){
+    ctx.clearRect(0,0,W,H);
+    imgData=null;
+}
+function clear(){
+    if(imgData){
+        restoreImageData();
+    } else {
+        ctx.clearRect(0,0,W,H);
+    }
+}
+function saveImageData(){
+  imgData=ctx.getImageData(0,0,W,H);
+}
+function restoreImageData(){
+  ctx.putImageData(imgData,0,0);
+}
+function windowToCanvas(canvas, x, y) {
+    if (!canvas) {
+        console.log('canvas not exist');
+        return { x: 0, y: 0 };
+    }
+    var box = canvas.getBoundingClientRect();
+    return {
+        x: x - box.left * (canvas.width / box.width),
+        y: y - box.top * (canvas.height / box.height)
+    };
+}
+</script>
+
+</body>
+</html>
