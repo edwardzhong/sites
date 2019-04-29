@@ -9,18 +9,148 @@
      * webgl采用的是右手坐标系
      * z正值表示该对象是在屏幕/观众近，而z的负值表示该对象远离屏幕 
      */
-     
+
+    //是否将扩展加入到上下文
+    const defaults = {
+        addExtensionsToContext: true,
+    };
+
+    const glEnumToString = (function() {
+        const haveEnumsForType = {};
+        const enums = {};
+      
+        function addEnums(gl) {
+          const type = gl.constructor.name;
+          if (!haveEnumsForType[type]) {
+            for (const key in gl) {
+              if (typeof gl[key] === 'number') {
+                const existing = enums[gl[key]];
+                enums[gl[key]] = existing ? `${existing} | ${key}` : key;
+              }
+            }
+            haveEnumsForType[type] = true;
+          }
+        }
+      
+        return function glEnumToString(gl, value) {
+          addEnums(gl);
+          return enums[value] || ("0x" + value.toString(16));
+        };
+      }());
+
+    const prefixRE = /^(.*?)_/;
+    function addExtensionToContext(gl, extensionName) {
+        glEnumToString(gl, 0);
+        const ext = gl.getExtension(extensionName);
+        if (ext) {
+            const enums = {};
+            const fnSuffix = prefixRE.exec(extensionName)[1];
+            const enumSuffix = '_' + fnSuffix;
+            for (const key in ext) {
+                const value = ext[key];
+                const isFunc = typeof (value) === 'function';
+                const suffix = isFunc ? fnSuffix : enumSuffix;
+                let name = key;
+                // examples of where this is not true are WEBGL_compressed_texture_s3tc
+                // and WEBGL_compressed_texture_pvrtc
+                if (key.endsWith(suffix)) {
+                    name = key.substring(0, key.length - suffix.length);
+                }
+                if (gl[name] !== undefined) {
+                    if (!isFunc && gl[name] !== value) {
+                        helper.warn(name, gl[name], value, key);
+                    }
+                } else {
+                    if (isFunc) {
+                        gl[name] = function(origFn) {
+                            return function() {
+                                return origFn.apply(ext, arguments);
+                            };
+                        }(value);
+                    } else {
+                        gl[name] = value;
+                        enums[name] = value;
+                    }
+                }
+            }
+            // pass the modified enums to glEnumToString
+            enums.constructor = {
+                name: ext.constructor.name,
+            };
+            glEnumToString(enums, 0);
+        }
+        return ext;
+    }
+
+    //扩展列表
+    const supportedExtensions = [
+        'ANGLE_instanced_arrays',
+        'EXT_blend_minmax',
+        'EXT_color_buffer_float',
+        'EXT_color_buffer_half_float',
+        'EXT_disjoint_timer_query',
+        'EXT_disjoint_timer_query_webgl2',
+        'EXT_frag_depth',
+        'EXT_sRGB',
+        'EXT_shader_texture_lod',
+        'EXT_texture_filter_anisotropic',
+        'OES_element_index_uint',
+        'OES_standard_derivatives',
+        'OES_texture_float',
+        'OES_texture_float_linear',
+        'OES_texture_half_float',
+        'OES_texture_half_float_linear',
+        'OES_vertex_array_object',
+        'WEBGL_color_buffer_float',
+        'WEBGL_compressed_texture_atc',
+        'WEBGL_compressed_texture_etc1',
+        'WEBGL_compressed_texture_pvrtc',
+        'WEBGL_compressed_texture_s3tc',
+        'WEBGL_compressed_texture_s3tc_srgb',
+        'WEBGL_depth_texture',
+        'WEBGL_draw_buffers',
+    ];
+
+    function addExtensionsToContext(gl) {
+        for (let ii = 0; ii < supportedExtensions.length; ++ii) {
+            addExtensionToContext(gl, supportedExtensions[ii]);
+        }
+    }
+
+    
     /**
-     * 获取webgl上下文
+     * 获取webgl1上下文
      */
     function get3DContext(canvas, opt) {
-        var names = ["webgl2", "webgl", "experimental-webgl", "webkit-3d", "moz-webgl"];
-        var context = null;
-        for (var i = 0, len = names.length; i < len; i++) {
-            try {
-                context = canvas.getContext(names[i], opt);
-            } catch (e) {}
+        const names = ["webgl", "experimental-webgl"];
+        let context = null;
+        for (let i = 0, len = names.length; i < len; i++) {
+            context = canvas.getContext(names[i], opt);
             if (context) {
+              if (defaults.addExtensionsToContext) {
+                addExtensionsToContext(context);
+              }
+              break;
+            }
+        }
+        return context;
+    }
+
+    /**
+     * Creates a webgl context.
+     * Will return a WebGL2 context if possible.
+     * @param {HTMLCanvasElement} canvas 
+     * @return {WebGLRenderingContext} The created context.
+     */
+    function createContext(canvas, opt) {
+        const names = ["webgl2", "webgl", "experimental-webgl"];
+        let context = null;
+        for (let i = 0; i < names.length; ++i) {
+        context = canvas.getContext(names[i], opt);
+            if (context) {
+                if (defaults.addExtensionsToContext) {
+                    addExtensionsToContext(context);
+                }
                 break;
             }
         }
@@ -32,60 +162,33 @@
      * 参数形式(gl,[vid,sid],true)/(gl,vid,sid,true)
      * @param  {Object}        gl          context
      * @param  {Array/String}  ids         script id
-     * @param  {Boolean}       useProgram  是否将program设置为当前使用
      * @return {Object} 
      */
-    function initProgram(gl) {
-        var args = Array.prototype.slice.call(arguments, 1),
-            last = args.slice(-1)[0],
-            useProgram = typeof last == 'boolean' ? useProgram = args.pop() : false;
-
-        var shaders = getShaderString(args);
+    function createProgramByScript(gl,...args) {
+        const shaders = getShaderString(args);
         if (!shaders.length) return null;
-        var program = createProgram(gl, shaders[0], shaders[1]);
-        if (!program) {
-            console.log('Failed to create program');
-            return null;
-        }
-        // 使用程序对象
-        if (useProgram) {
-            gl.useProgram(program);
-            gl.program = program;
-        }
-        return program;
+        return  createProgramBySource(gl, shaders);
     }
 
-
     /**
-     * 获取着色器代码字符串
-     * @param  {Object}       gl  context
-     * @param  {String/Array} vid script id
+     * 根据htmlelement的id获取着色器代码字符串
+     * 参数形式:(['vid','fid']) 或 ('fid','vid')
+     * @param  {String/Array} vid/fid script id
      * @return {Array}
      */
-    function getShaderString(vid, fid) {
-        var args = Array.prototype.slice.call(arguments),
-            arr = [],
-            vshader, fshader, element;
+    function getShaderString(...args) {
+        let ids = [], vshader, fshader, element;
 
         String(args).replace(new RegExp('[^\\,\\s]+', 'g'), function(item) {
-            if (item) { arr.push(item); }
+            if (item) { ids.push(item); }
         });
 
-        arr.forEach(function(id) {
+        ids.forEach(function(id) {
             element = document.getElementById(id);
-            if (element) {
-                switch (element.type) {
-                    // 顶点着色器的时候  
-                    case 'x-shader/x-vertex':
-                        vshader = element.text;
-                        break;
-                        // 片段着色器的时候  
-                    case 'x-shader/x-fragment':
-                        fshader = element.text;
-                        break;
-                    default:
-                        break;
-                }
+            if(element.type.indexOf("vert") >= 0){// 顶点着色器
+                vshader = element.text;
+            } else if(element.type.indexOf("frag") >= 0){// 片段着色器
+                fshader = element.text;
             }
         });
         if (!vshader) {
@@ -101,21 +204,21 @@
 
     /**
      * 创建连接程序对象
-     * @param  {Object} gl       上下文
-     * @param  {String} vshader  顶点着色器代码
-     * @param  {String} fshader  片元着色器代码
+     * @param  {Object} gl      上下文
+     * @param  {Array} shaders  着色器代码
      * @return {Object}         
      */
-    function createProgram(gl, vshader, fshader) {
+    function createProgramBySource(gl, ...shaders) {
+        if(Array.isArray(shaders[0])) { shaders = shaders[0]; }//传的是数组
         // 创建着色器对象
-        var vertexShader = loadShader(gl, gl.VERTEX_SHADER, vshader);
-        var fragmentShader = loadShader(gl, gl.FRAGMENT_SHADER, fshader);
+        const vertexShader = loadShader(gl, gl.VERTEX_SHADER, shaders[0]);
+        const fragmentShader = loadShader(gl, gl.FRAGMENT_SHADER, shaders[1]);
         if (!vertexShader || !fragmentShader) {
             return null;
         }
 
         // 创建程序对象
-        var program = gl.createProgram();
+        const program = gl.createProgram();
         if (!program) {
             return null;
         }
@@ -128,9 +231,9 @@
         gl.linkProgram(program);
 
         // 检查连接结果
-        var linked = gl.getProgramParameter(program, gl.LINK_STATUS);
+        const linked = gl.getProgramParameter(program, gl.LINK_STATUS);
         if (!linked) {
-            var error = gl.getProgramInfoLog(program);
+            const error = gl.getProgramInfoLog(program);
             console.log('Failed to link program: ' + error);
             gl.deleteProgram(program);
             gl.deleteShader(fragmentShader);
@@ -149,7 +252,7 @@
      */
     function loadShader(gl, type, source) {
         // 创建着色器对象
-        var shader = gl.createShader(type);
+        const shader = gl.createShader(type);
         if (!shader) {
             console.log('unable to create shader');
             return null;
@@ -162,9 +265,9 @@
         gl.compileShader(shader);
 
         // 检查编译结果
-        var compiled = gl.getShaderParameter(shader, gl.COMPILE_STATUS);
+        const compiled = gl.getShaderParameter(shader, gl.COMPILE_STATUS);
         if (!compiled) {
-            var error = gl.getShaderInfoLog(shader);
+            const error = gl.getShaderInfoLog(shader);
             console.log('Failed to compile shader: ' + error);
             gl.deleteShader(shader);
             return null;
@@ -176,19 +279,15 @@
     /**
      * 创建程序对象
      * @param  {Object} gl            
-     * @param  {Array}  shaderSources 着色器id或字符串
+     * @param  {Array}  shaders 着色器id或字符串
      * @return {Object}               
      */
-    function createProgramInfo(gl, shaderSources) {
-        var program;
+    function createProgramInfo(gl, ...shaders) {
         // Lets assume if there is no \n it's an id
-        if (shaderSources[0].indexOf("\n") < 0) {
-            program = initProgram(gl, shaderSources, false);
-        } else {
-            program = createProgram(gl, shaderSources[0], shaderSources[1]);
-        }
-        var uniformSetters = createUniformSetters(gl, program);
-        var attribSetters = createAttributeSetters(gl, program);
+        if(Array.isArray(shaders[0])) { shaders = shaders[0]; }//传的是数组
+        const program = shaders[0].indexOf('\n') > 0 ? createProgramBySource(gl, shaders) : createProgramByScript(gl, shaders);
+        const uniformSetters = createUniformSetters(gl, program);
+        const attribSetters = createAttributeSetters(gl, program);
         return {
             program: program,
             uniformSetters: uniformSetters,
@@ -200,6 +299,7 @@
      * 绑定缓冲区,设置attributes
      */
     function setBuffersAndAttributes(gl, programInfo, buffers) {
+        //支持VAO的情况
         if (buffers.vertexArrayObject) {
             gl.bindVertexArray(buffers.vertexArrayObject);
         } else {
@@ -216,8 +316,8 @@
     function createAttributeSetters(gl, program) {
         var attribSetters = {},
             numAttribs = gl.getProgramParameter(program, gl.ACTIVE_ATTRIBUTES);
-        for (var ii = 0; ii < numAttribs; ++ii) {
-            var attribInfo = gl.getActiveAttrib(program, ii);
+        for (var i = 0; i < numAttribs; ++i) {
+            var attribInfo = gl.getActiveAttrib(program, i);
             if (!attribInfo) {
                 break;
             }
@@ -292,6 +392,7 @@
             var setter = createUniformSetter(program, uniformInfo);
             uniformSetters[name] = setter;
         }
+
         function createUniformSetter(program, uniformInfo) {
             var location = gl.getUniformLocation(program, uniformInfo.name);
             var type = uniformInfo.type;
@@ -447,7 +548,6 @@
         });
     }
 
-
     /**
      * 根据数组创建缓冲区信息对象(attribute的维度)
      * Given an object like
@@ -463,7 +563,7 @@
      *
      *     bufferInfo = {
      *       indexType:gl.UNSIGNED_BYTE,
-     *       numElements: 4,        // or whatever the number of elements is
+     *       count: 4,        // or whatever the number of elements is
      *       indices: WebGLBuffer,  // this property will not exist if there are no indices
      *       attribs: {
      *         a_position: { buffer: WebGLBuffer, num: 3, },
@@ -500,10 +600,10 @@
         if (indices) {
             indices = makeTypedArray(indices, "indices");
             bufferInfo.indices = createBufferFromTypedArray(gl, indices, gl.ELEMENT_ARRAY_BUFFER);
-            bufferInfo.numElements = indices.length;
-            bufferInfo.indexType=getGLTypeForTypedArray(gl,indices);
+            bufferInfo.count = indices.length;
+            bufferInfo.indexType = getGLTypeForTypedArray(gl,indices);
         } else {
-            bufferInfo.numElements = getNumElementsFromNonIndexedArrays(arrays);
+            bufferInfo.count = getNumElementsFromNonIndexedArrays(arrays);
         }
 
         return bufferInfo;
@@ -511,26 +611,37 @@
 
     /**
      * 根据数组创建缓冲区对象(buffer的维度)
+     *  {
+     *    position: { buffer: WebGLBuffer, num: 3, },
+     *    normal:   { buffer: WebGLBuffer, num: 3, },
+     *    texcoord: { buffer: WebGLBuffer, num: 2, },
+     *    indices : { buffer...}
+     *    count: 100,
+     *  }
      */
     function createBuffersFromArrays(gl, arrays) {
         var buffers = {};
         Object.keys(arrays).forEach(function(key) {
             var type = key === "indices" ? gl.ELEMENT_ARRAY_BUFFER : gl.ARRAY_BUFFER;
-            var array = makeTypedArray(arrays[key], name);
+            var array = makeTypedArray(arrays[key], key);
             buffers[key] = createBufferFromTypedArray(gl, array, type);
         });
 
-        // hrm
         if (arrays.indices) {
-            buffers.numElements = arrays.indices.length;
+            buffers.count = arrays.indices.length;
         } else if (arrays.position) {
-            buffers.numElements = arrays.position.length / 3;
+            buffers.count = arrays.position.length / 3;
         }
         return buffers;
     }
 
     /**
      * 根据数组创建attributes信息
+     * {
+     *   a_position: { buffer: WebGLBuffer, num: 3, type:.. },
+     *   a_normal:   { buffer: WebGLBuffer, num: 3, type:..},
+     *   a_texcoord: { buffer: WebGLBuffer, num: 2, type:..},
+     * }
      */
     function createAttribsFromArrays(gl, arrays, opt_mapping) {
         var mapping = opt_mapping || createMapping(arrays);
@@ -546,6 +657,75 @@
             };
         });
         return attribs;
+    }
+
+    /**
+     * Creates a VertexArrayInfo from a BufferInfo and one or more ProgramInfos
+     *
+     * > **IMPORTANT:** Vertex Array Objects are **not** a direct analog for a BufferInfo. Vertex Array Objects
+     *   assign buffers to specific attributes at creation time. That means they can only be used with programs
+     *   who's attributes use the same attribute locations for the same purposes.
+     *
+     * > Bind your attribute locations by passing an array of attribute names to {createProgramInfo}
+     *   or use WebGL 2's GLSL ES 3's `layout(location = <num>)` to make sure locations match.
+     * also
+     * > **IMPORTANT:** After calling setBuffersAndAttribute with a BufferInfo that uses a Vertex Array Object
+     *   that Vertex Array Object will be bound. That means **ANY MANIPULATION OF ELEMENT_ARRAY_BUFFER or ATTRIBUTES**
+     *   will affect the Vertex Array Object state.
+     *
+     * > Call `gl.bindVertexArray(null)` to get back manipulating the global attributes and ELEMENT_ARRAY_BUFFER.
+     *
+     * @param {WebGLRenderingContext} gl A WebGLRenderingContext
+     * @param {ProgramInfo[]} programInfo a programInfo or array of programInfos
+     * @param {BufferInfo} bufferInfo BufferInfo as returned from createBufferInfoFromArrays etc...
+     */
+    function createVertexArrayInfo(gl, programInfos, bufferInfo) {
+        const vao = gl.createVertexArray();
+        gl.bindVertexArray(vao);
+        if (!programInfos.length) {
+            programInfos = [programInfos];
+        }
+        programInfos.forEach(function(programInfo) {
+            setBuffersAndAttributes(gl, programInfo, bufferInfo);
+        });
+        gl.bindVertexArray(null);
+        return {
+            count: bufferInfo.count,
+            indexType: bufferInfo.indexType,
+            vertexArrayObject: vao,
+        };
+    }
+
+    /**
+     * Creates a vertex array object and then sets the attributes on it
+     * @param {WebGLRenderingContext} gl The WebGLRenderingContext to use.
+     * @param {Object<string, function>} setters Attribute setters as returned from createAttributeSetters
+     * @param {Object<string, .AttribInfo>} attribs AttribInfos mapped by attribute name.
+     * @param {WebGLBuffer} [indices] an optional ELEMENT_ARRAY_BUFFER of indices
+     */
+    function createVAOAndSetAttributes(gl, setters, attribs, indices) {
+        const vao = gl.createVertexArray();
+        gl.bindVertexArray(vao);
+        setAttributes(setters, attribs);
+        if (indices) {
+            gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indices);
+        }
+        // We unbind this because otherwise any change to ELEMENT_ARRAY_BUFFER
+        // like when creating buffers for other stuff will mess up this VAO's binding
+        gl.bindVertexArray(null);
+        return vao;
+    }
+
+    /**
+     * Creates a vertex array object and then sets the attributes
+     * @param {WebGLRenderingContext} gl The WebGLRenderingContext
+     * @param {ProgramInfo} programInfo as returned from createProgramInfo or Attribute setters as returned from createAttributeSetters
+     * @param {BufferInfo} bufferInfo BufferInfo as returned from createBufferInfoFromArrays etc...
+     * @param {WebGLBuffer} [indices] an optional ELEMENT_ARRAY_BUFFER of indices
+     * @memberOf module:twgl/vertexArrays
+     */
+    function createVAOFromBufferInfo(gl, programInfo, bufferInfo) {
+        return createVAOAndSetAttributes(gl, programInfo.attribSetters || programInfo, bufferInfo.attribs, bufferInfo.indices);
     }
 
     /**
@@ -569,65 +749,65 @@
     /**
      * 创建类型化数组
      */
-  function makeTypedArray(array, name) {
-      if (isArrayBuffer(array)) {
-          return array;
-      }
+    function makeTypedArray(array, name) {
+        if (isArrayBuffer(array)) {
+            return array;
+        }
 
-      if (Array.isArray(array)) {
-          array = {
-              data: array,
-          };
-      }
+        if (Array.isArray(array)) {
+            array = {
+                data: array,
+            };
+        }
 
-      if (!array.num) {
-          array.num = guessNumFromName(name, array.length);
-      }
+        if (!array.num) {
+            array.num = guessNumFromName(name, array.length);
+        }
 
-      var type = array.type;
-      if (!type) {
-          if (name === "indices") {
-              type = Uint16Array;
-          }
-      }
-      var typedArray = createAugmentedTypedArray(array.num, array.data.length / array.num | 0, type);
-      typedArray.push(array.data);
-      return typedArray;
-  }
+        var type = array.type;
+        if (!type) {
+            if (name === "indices") {
+                type = Uint16Array;
+            }
+        }
+        var typedArray = createAugmentedTypedArray(array.num, array.data.length / array.num | 0, type);
+        typedArray.push(array.data);
+        return typedArray;
+    }
 
-  function createAugmentedTypedArray(num, numElements, opt_type) {
-      var Type = opt_type || Float32Array;
-      return augmentTypedArray(new Type(num * numElements), num);
-  }
+    function createAugmentedTypedArray(num, count, opt_type) {
+        var Type = opt_type || Float32Array;
+        return augmentTypedArray(new Type(num * count), num);
+    }
 
-  // Add `push` to a typed array. It just keeps a 'cursor'
-  // and allows use to `push` values into the array so we
-  // don't have to manually compute offsets
-  function augmentTypedArray(typedArray, num) {
-      var cursor = 0;
-      typedArray.push = function() {
-          for (var i = 0; i < arguments.length; ++i) {
-              var value = arguments[i];
-              if (value instanceof Array || (value.buffer && value.buffer instanceof ArrayBuffer)) {
-                  for (var j = 0; j < value.length; ++j) {
-                      typedArray[cursor++] = value[j];
-                  }
-              } else {
-                  typedArray[cursor++] = value;
-              }
-          }
-      };
-      typedArray.reset = function(opt_index) {
-          cursor = opt_index || 0;
-      };
-      typedArray.num = num;
-      Object.defineProperty(typedArray, 'numElements', {
-          get: function() {
-              return this.length / this.num | 0;
-          },
-      });
-      return typedArray;
-  }
+    // Add `push` to a typed array. It just keeps a 'cursor'
+    // and allows use to `push` values into the array so we
+    // don't have to manually compute offsets
+    function augmentTypedArray(typedArray, num) {
+        let cursor = 0;
+        typedArray.push = function() {
+            for (let i = 0; i < arguments.length; ++i) {
+                let value = arguments[i];
+                if (value instanceof Array || (value.buffer && value.buffer instanceof ArrayBuffer)) {
+                    for (let j = 0; j < value.length; ++j) {
+                        typedArray[cursor++] = value[j];
+                    }
+                } else {
+                    typedArray[cursor++] = value;
+                }
+            }
+        };
+        typedArray.reset = function(opt_index) {
+            cursor = opt_index || 0;
+        };
+        typedArray.num = num;
+        Object.defineProperty(typedArray, 'count', {
+            get: function() {
+                return this.length / this.num | 0;
+            },
+        });
+        return typedArray;
+    }
 
 
     /**
@@ -641,7 +821,7 @@
      * 根据名字猜测元素个数
      */
     function guessNumFromName(name, length) {
-        var num;
+        let num;
         if (name.indexOf("coord") >= 0) {
             num = 2;
         } else if (name.indexOf("color") >= 0) {
@@ -662,7 +842,7 @@
      */
     function createBufferFromTypedArray(gl, array, type, drawType) {
         type = type || gl.ARRAY_BUFFER;
-        var buffer = gl.createBuffer();
+        const buffer = gl.createBuffer();
         gl.bindBuffer(type, buffer);
         gl.bufferData(type, array, drawType || gl.STATIC_DRAW);
         return buffer;
@@ -672,20 +852,13 @@
      * 根据构造函数获取对应的元素类型
      */
     function getGLTypeForTypedArray(gl, typedArray) {
-        if (typedArray instanceof Int8Array) {
-            return gl.BYTE; }
-        if (typedArray instanceof Uint8Array) {
-            return gl.UNSIGNED_BYTE; }
-        if (typedArray instanceof Int16Array) {
-            return gl.SHORT; }
-        if (typedArray instanceof Uint16Array) {
-            return gl.UNSIGNED_SHORT; }
-        if (typedArray instanceof Int32Array) {
-            return gl.INT; }
-        if (typedArray instanceof Uint32Array) {
-            return gl.UNSIGNED_INT; }
-        if (typedArray instanceof Float32Array) {
-            return gl.FLOAT; }
+        if (typedArray instanceof Int8Array) {return gl.BYTE; }
+        if (typedArray instanceof Uint8Array) {return gl.UNSIGNED_BYTE; }
+        if (typedArray instanceof Int16Array) {return gl.SHORT; }
+        if (typedArray instanceof Uint16Array) {return gl.UNSIGNED_SHORT; }
+        if (typedArray instanceof Int32Array) {return gl.INT; }
+        if (typedArray instanceof Uint32Array) {return gl.UNSIGNED_INT; }
+        if (typedArray instanceof Float32Array) {return gl.FLOAT; }
         throw "unsupported typed array type";
     }
 
@@ -702,10 +875,8 @@
      * 猜测是否归一化
      */
     function getNormalizationForTypedArray(typedArray) {
-        if (typedArray instanceof Int8Array) {
-            return true; }
-        if (typedArray instanceof Uint8Array) {
-            return true; }
+        if (typedArray instanceof Int8Array) {return true; }
+        if (typedArray instanceof Uint8Array) {return true; }
         return false;
     }
 
@@ -713,110 +884,204 @@
      * 获取元素个数
      */
     function getNumElementsFromNonIndexedArrays(arrays) {
-        var key = Object.keys(arrays)[0];
-        var array = arrays[key];
-        if (isArrayBuffer(array)) {
-            return array.numElements;
+        const key = Object.keys(arrays)[0];
+        const array = arrays[key];
+        if(array.count){
+            return array.count;
+        }
+        const num = array.num || guessNumFromName(key, array.length);
+        return array.length / num;
+    }
+    /*
+    * @param {WebGLRenderingContext} gl A WebGLRenderingContext
+    * @param {BufferInfo} bufferInfo 
+    * @param {number} [type] eg (gl.TRIANGLES, gl.LINES, gl.POINTS, gl.TRIANGLE_STRIP, ...). Defaults to `gl.TRIANGLES`
+    * @param {number} [count] An optional count. Defaults to bufferInfo.numElements
+    * @param {number} [offset] An optional offset. Defaults to 0.
+    */
+    function drawBufferInfo(gl, bufferInfo, type, count, offset) {
+        type = type || gl.TRIANGLES;
+        count = count || bufferInfo.count;
+        offset = offset || 0;
+        const indices = bufferInfo.indices;
+        const indexType = bufferInfo.indexType;
+        if (indexType || indices) {
+            gl.drawElements(type, count, indexType || gl.UNSIGNED_SHORT, offset);
         } else {
-            return array.data.length / array.num;
+            gl.drawArrays(type, offset, count);
         }
     }
 
-        /**
-     * 初始化帧缓冲区对象 (FBO)  
+    /**
+     * 创建帧缓冲区对象  
      * @param  {Object} gl 上下文
      * @return {Object}    
      */
-    function initFramebufferObject(gl) {
-        var framebuffer, texture, depthBuffer;
-
-        // Define the error handling function
-        var error = function() {
+    function createFramebuffer(gl,opt) {
+        let framebuffer, texture, depthBuffer;
+        const w = opt.w||1024, h = opt.h||1024;
+        // 错误处理函数
+        const error = function() {
             if (framebuffer) gl.deleteFramebuffer(framebuffer);
             if (texture) gl.deleteTexture(texture);
             if (depthBuffer) gl.deleteRenderbuffer(depthBuffer);
             return null;
         }
-
-        // Create a framebuffer object (FBO)
+    
+        // 创建帧缓冲区
         framebuffer = gl.createFramebuffer();
         if (!framebuffer) {
             console.log('Failed to create frame buffer object');
             return error();
         }
-
-        // Create a texture object
-        texture = gl.createTexture(); 
+    
+        // 创建纹理
+        texture = gl.createTexture();
         if (!texture) {
             console.log('Failed to create texture object');
             return error();
         }
-        // set texture object size and parameters
-        gl.bindTexture(gl.TEXTURE_2D, texture);
-        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, OFFSCREEN_WIDTH, OFFSCREEN_HEIGHT, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
 
-        // Create a renderbuffer object
-        depthBuffer = gl.createRenderbuffer(); 
+        // 激活纹理单元,并将纹理对象绑定到该单元
+        const unit = gl['TEXTURE' + (opt.unit||0)];
+        gl.activeTexture(unit);
+        gl.bindTexture(gl.TEXTURE_2D, texture);
+        // 设置纹理参数
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, w, h, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);//缩小过滤中(远离镜头)，从纹理坐标附近的纹理取得一个双线性样本 LINEAR(4个样本的平均值)
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);//放大过滤中(靠近镜头)，从最靠近纹理坐标的纹理中取得单点样本 NEAREST
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);//s坐标超出 0.0-1.0 范围时的行为: 限定读取纹理的边缘
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);//t坐标超出 0.0-1.0 范围时的行为: 限定读取纹理的边缘
+        
+        // 创建渲染缓冲区用于保存深度，代替深度缓冲区
+        depthBuffer = gl.createRenderbuffer();
         if (!depthBuffer) {
             console.log('Failed to create renderbuffer object');
             return error();
         }
-        // Set renderbuffer object size and parameters
+        //绑定渲染缓冲区
         gl.bindRenderbuffer(gl.RENDERBUFFER, depthBuffer);
-        gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_COMPONENT16, OFFSCREEN_WIDTH, OFFSCREEN_HEIGHT);
-
-        // Attach the texture and the renderbuffer object to the FBO
+        //设置为深度缓冲区，gl.DEPTH_COMPONENT16 表示渲染缓冲区将代替深度缓冲区；
+        gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_COMPONENT16, w, h);
+    
+        // 绑定帧缓冲区
         gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer);
+        // 将纹理连接到颜色对象
         gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, texture, 0);
+        // 渲染缓冲区连接到深度对象
         gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.RENDERBUFFER, depthBuffer);
-
-        // Check if FBO is configured correctly
-        var e = gl.checkFramebufferStatus(gl.FRAMEBUFFER);
+    
+        // 检查帧缓冲区对象
+        const e = gl.checkFramebufferStatus(gl.FRAMEBUFFER);
         if (gl.FRAMEBUFFER_COMPLETE !== e) {
             console.log('Frame buffer object is incomplete: ' + e.toString());
             return error();
         }
-
-        framebuffer.texture = texture; // keep the required object
-
-        // Unbind the buffer object
+    
+        // 解绑帧缓冲区对象
+        // gl.bindTexture(gl.TEXTURE_2D, null);
         gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-        gl.bindTexture(gl.TEXTURE_2D, null);
         gl.bindRenderbuffer(gl.RENDERBUFFER, null);
 
         return framebuffer;
     }
 
+    /**
+     * 创建纹理对象
+     * @param {Object} gl 
+     * @param {Object} opt 
+     * @param {Function} callback 
+     */
+    function createTexture(gl, opt, callback) {
+        const texture = gl.createTexture();
+        const unit = gl.TEXTURE0 + (opt.unit||0);
+        // 激活纹理单元
+        gl.activeTexture(unit);
+        // 纹理对象绑定到该单元
+        gl.bindTexture(gl.TEXTURE_2D, texture);
+        // 设置纹理参数
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, opt.min||gl.LINEAR);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, opt.mag||gl.LINEAR);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, opt.wrapT||gl.REPEAT);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, opt.wrapS||gl.REPEAT);
+        
+        // 图片加载之前立即渲染纹理，先用 1x1 蓝色像素填充纹理
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, new Uint8Array([0, 0, 255, 255]));
+
+        if(opt.url){
+            const image = new Image();
+            image.onload = function(){
+                let source = image; 
+                const format = opt.format||gl.RGBA;
+                if(opt.scale && (opt.scale.x != 1 || opt.scale.y != 1)){
+                    // 使用 2d canvas 缩放纹理
+                    const canvas = document.createElement('canvas');
+                    const ctx = canvas.getContext('2d');
+                    let w = canvas.width = image.width;
+                    let h = canvas.height = image.height;
+                    let il = opt.scale.x;
+                    let jl = opt.scale.y;
+                    for(let i = 0; i < il; i++){
+                        for(let j=0; j < jl; j++){
+                            ctx.drawImage(image, i * w/il, j * h/jl, w/il, h/jl);
+                        }
+                    }
+                    source = canvas;
+                }
+                /**
+                 * 图片加载完后，重新加载到纹理
+                 */
+                // 再次激活纹理单元
+                gl.activeTexture(unit);
+                // 反转Y坐标
+                gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, 1);
+                // 将图像设置到纹理，重新绑定加载
+                gl.bindTexture(gl.TEXTURE_2D, texture);
+                // 上传图像到纹理
+                gl.texImage2D(gl.TEXTURE_2D, 0, format, format, gl.UNSIGNED_BYTE, source);
+                //纹理贴图，根据原始图像创建所有的缩小级别，每个子图都是前一级的双线性插值，用于消除锯齿
+                gl.generateMipmap(gl.TEXTURE_2D);
+                callback && callback(texture, source);
+            };
+            loadImageCORS(image, opt.url);
+        }
+        return texture;
+    }
+
+    //突破跨域加载图片
+    function loadImageCORS(img, url) {
+        if ((new URL(url)).origin !== window.location.origin) {
+            img.crossOrigin = "";
+        }
+        img.src = url;
+    }
+    
     var output = {
         get3DContext: get3DContext,
-        getShaderString: getShaderString,
-        loadShader: loadShader,
-        initProgram: initProgram,
-        createProgram: createProgram,
+        createContext: createContext,
+        createProgramByScript: createProgramByScript,
+        createProgramBySource: createProgramBySource,
         createProgramInfo: createProgramInfo,
         createAttributeSetters: createAttributeSetters,
-        createUniformSetters:createUniformSetters,
+        createUniformSetters: createUniformSetters,
         setBuffersAndAttributes: setBuffersAndAttributes,
         setUniforms:setUniforms,
         setAttributes: setAttributes,
-        createBufferInfoFromArrays:createBufferInfoFromArrays,
-        createBuffersFromArrays:createBuffersFromArrays,
-        createAttribsFromArrays:createAttribsFromArrays,
-        initFramebufferObject:initFramebufferObject
+        createBufferInfoFromArrays: createBufferInfoFromArrays,
+        createBuffersFromArrays: createBuffersFromArrays,
+        createAttribsFromArrays: createAttribsFromArrays,
+        createVAOFromBufferInfo: createVAOFromBufferInfo,
+        createVertexArrayInfo: createVertexArrayInfo,
+        drawBufferInfo: drawBufferInfo,
+        createFramebuffer: createFramebuffer,
+        createTexture: createTexture
     };
 
     if (typeof module !== 'undefined' && module.exports) {
         module.exports=output;
-    } else if (typeof define === 'function' && typeof define.amd === 'object' && define.amd) {
-        define(function() {
-            return output;
-        });
     } else {
         for(var n in output){
             window[n]=output[n];
         }
     }
 }());
-
-

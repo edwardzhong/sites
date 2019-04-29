@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+<title>纹理贴图</title>
+<link rel="stylesheet" href="../../css/pure-min.css">
+<link rel="stylesheet" href="../../css/fontello.css">
+<link rel="stylesheet" href="../css/style.css">
+
+label{padding: 10px;}
+span {
+    padding: 10px;
+}
+
+<!--[if lt IE 9]>
+<script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+<![endif]-->
+</head>
+<body>
+	<div class="content">
+		<a class="github" href="https://github.com/edwardzhong">
+			<img src="../img/github.png" alt="">
+		</a>
+		<header class="header">
+			<h1><a href="../index.html">Jeff Zhong's Demo</a></h1>
+		</header>
+		<div class="main grid">
+		<a class="effect-list" href="../index.html">&larr;&nbsp;effect list</a>
+		
+<label for="viewAngle">相机角度：</label>
+<input type="range" name="viewAngle" id="viewAngle" step="1" min="0" max="360" value="0">
+<span id="vav">0</span>
+<br>
+<label for="lightAngle">光线角度：</label>
+<input type="range" name="lightAngle" id="lightAngle" step="1" min="0" max="360" value="0">
+<span id="lav">0</span>
+<br>
+<label for="isMap">高光贴图</label>
+<input type="checkbox" name="isMap" id="isMap"><br>
+<canvas id="canvas" width="600" height="600"></canvas>
+ </div>
+		<footer class="footer">
+			<p>Copyright &copy; 2017 <a href="https://github.com/edwardzhong">Jeff Zhong</a></p>
+		</footer>
+	</div>
+
+<script src="../../js/webgl-util.js"></script>
+<script src="../../js/matrix.js"></script>
+<script type="x-shader/x-vertex" id="vs">
+    attribute vec4 a_position;
+    attribute vec2 a_texcoord;
+    attribute vec4 a_normal;
+    uniform mat4 u_vpMatrix;
+    uniform mat4 u_modelMatrix;
+    varying vec3 v_position;
+    varying vec2 v_texcoord;
+    varying vec3 v_normal;
+    
+    void main() { 
+        gl_Position = u_vpMatrix * u_modelMatrix * a_position;
+        v_position = vec3(u_modelMatrix * a_position);
+        v_texcoord = a_texcoord;
+        v_normal = vec3(u_modelMatrix * a_normal);
+    } 
+</script>
+<script type="x-shader/x-fragment" id="fs">
+    precision mediump float;
+    uniform vec3 u_viewPosition;
+    uniform vec3 u_lightPosition;
+    uniform vec3 u_specularColor;
+    uniform float u_shininess;
+    uniform vec3 u_diffuseColor;
+    uniform vec3 u_ambientColor;
+    uniform sampler2D u_samplerD;
+    uniform sampler2D u_samplerS;
+    uniform float u_isMap;
+    varying vec3 v_position;
+    varying vec2 v_texcoord;
+    varying vec3 v_normal;
+    
+    void main() {
+        vec3 normal = normalize(v_normal);
+        vec4 diffMap = texture2D(u_samplerD, v_texcoord);
+        vec4 specMap = texture2D(u_samplerS, v_texcoord);
+
+        //光线方向
+        vec3 lightDirection = normalize(u_lightPosition - v_position);
+        // 计算光线方向和法向量夹角
+        float nDotL = max(dot(lightDirection, normal), 0.0);
+        // 漫反射光亮度
+        vec3 diffuse = u_diffuseColor * nDotL * diffMap.rgb;
+        // 环境光亮度
+        vec3 ambient = u_ambientColor * diffMap.rgb;
+
+        // 观察方向的单位向量V
+        vec3 eyeDirection = normalize(u_viewPosition - v_position);// 反射方向
+        // 镜面反射亮度权重
+        vec3 halfwayDir = normalize(lightDirection + eyeDirection);
+        float specularIntensity = pow(max(dot(normal, halfwayDir), 0.0), u_shininess);
+        vec3 specular = u_specularColor * specularIntensity;
+        if(u_isMap == 1.0){
+            specular = (vec3(0.2,0.2,0.2) + specMap.rgb) * specularIntensity;
+        }
+        gl_FragColor = vec4(ambient + diffuse + specular, diffMap.a);
+    }
+</script>
+<script>
+    const canvas = document.getElementById("canvas"),
+        gl = get3DContext(canvas, true),
+        va = document.getElementById('viewAngle'),
+        la = document.getElementById('lightAngle'),
+        vav = document.getElementById('vav'),
+        lav = document.getElementById('lav'),
+        isMap = document.getElementById('isMap');
+
+    const program = createProgramInfo(gl, 'vs','fs');
+    const arrays = {
+        position: [
+            -1, 0, -1,
+            -1, 0, 1,
+            1, 0, -1,
+            1, 0, 1
+        ],
+        texcoord: [
+            0.0, 1.0,
+            0.0, 0.0,
+            1.0, 1.0,
+            1.0, 0.0
+        ],
+        normal: [ 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1 ],
+    };
+    const buffer = createBufferInfoFromArrays( gl, arrays );
+    let vpMatrix = new Matrix4();
+    let modelMatrix = new Matrix4();
+    let cameraMatrix = new Matrix4();
+    let lightMatrix = new Matrix4();
+    let viewPosition = new Vector3([0, 3, 3]),
+        lightPosition = new Vector3([0, -3, 3]),
+        vAngle = 0, lAngle = 0;
+
+    // 设置背景颜色
+    gl.clearColor(0.0, 0.0, 0.0, 1.0);
+    // 开启隐藏面消除
+    gl.enable(gl.DEPTH_TEST);
+    // 设置绘图区域
+    gl.viewport(0, 0, canvas.width, canvas.height);
+  
+    gl.useProgram(program.program);
+    // modelMatrix.setRotate(-15,1,0,0);
+    setUniforms(program, {
+        u_modelMatrix: modelMatrix.elements,
+        u_diffuseColor: [0.4,0.4,0.4],
+        u_ambientColor: [0.4,0.4,0.4],
+        u_specularColor: [1,1,1],
+        u_shininess: 30,
+        u_isMap: 0
+    });
+    
+    (async function (){
+        const ret = await Promise.all([
+            loadTexture('/model/floor_tiles_06_diff_1k.jpg'),
+            loadTexture('/model/floor_tiles_06_spec_1k.jpg',1)
+        ]);
+        draw();
+    })()
+
+    va.oninput = function(e){
+        vAngle = this.value;
+        draw();
+        vav.innerHTML=vAngle;
+    };
+    la.oninput = function(e){
+        lAngle = this.value;
+        draw();
+        lav.innerHTML=lAngle;
+    };
+    isMap.onclick = function(){
+        setUniforms(program, { u_isMap: this.checked ? 1 : 0 });
+        draw();
+    }
+    let viewPoint = null;
+    let lightPoint = null;
+
+    function draw(){
+        //模型旋转
+        // modelMatrix.rotate(1,0,1,0);
+        
+        //直接计算视点
+        // angleY = (++ angleY)%360;
+        // z = r * Math.sin(Math.PI/180 * angleY);
+        // x = r * Math.cos(Math.PI/180 * angleY);
+
+        //使用矩阵计算视点
+        cameraMatrix.setRotate(vAngle,0,1,0);
+        viewPoint = cameraMatrix.multiplyVector3(viewPosition);
+
+        lightMatrix.setRotate(lAngle,0,1,0);
+        lightPoint = lightMatrix.multiplyVector3(lightPosition);
+
+        vpMatrix.setPerspective( 30, canvas.width / canvas.height, 1, 300 );
+        vpMatrix.lookAt( ...viewPoint.elements, 0, 0, 0, 0, 1, 0);
+        setBuffersAndAttributes(gl, program, buffer);
+        setUniforms(program, {
+            u_viewPosition: viewPoint.elements,
+            u_lightPosition: lightPoint.elements,
+            u_vpMatrix: vpMatrix.elements,
+            u_samplerD: 0,
+            u_samplerS: 1
+        });
+        gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+        drawBufferInfo(gl, buffer, gl.TRIANGLE_STRIP);
+    }
+    
+    function loadTexture(url,unit) {
+        const texture = gl.createTexture();
+        unit = gl.TEXTURE0 + (unit||0);
+        gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, 1);
+        gl.activeTexture(unit);
+        gl.bindTexture(gl.TEXTURE_2D, texture);
+        
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+        
+        let textureInfo = {
+            width: 1,
+            height: 1,
+            texture: texture,
+        };
+        const img = new Image();
+        return new Promise((resolve,reject) => {
+            img.onload = function() {
+                textureInfo.width = img.width;
+                textureInfo.height = img.height;
+                gl.activeTexture(unit);
+                gl.bindTexture(gl.TEXTURE_2D, textureInfo.texture);
+                gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, img);
+                resolve(textureInfo);
+            };
+            img.src = url;
+        });
+    }
+</script>
+
+</body>
+</html>
