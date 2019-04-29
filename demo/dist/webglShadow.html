@@ -79,15 +79,15 @@
     varying vec4 v_color;
     void main() {
         gl_Position = u_mvpMatrix * a_position; // 当前视点观察到的坐标
-        v_positionFromLight = u_mvpMatrixFromLight * a_position;//光源处观察到的坐标,用于后续分解出z值
-        v_position = vec3(u_modelMatrix * a_position);
+        v_positionFromLight = u_mvpMatrixFromLight * a_position;//光源坐标系下的位置,传给片元着色器，xy用于查找阴影纹理颜色，z是之后用于比较的深度值
+        v_position = vec3(u_modelMatrix * a_position);//顶点在世界坐标系中的位置
         v_normal = normalize(vec3(u_normalMatrix * a_normal));
         v_color = a_color;
     }
 </script>
 <script type="x-shader/x-fragment" id="fs">
     #ifdef GL_ES
-        precision highp float;
+        precision mediump float;
     #endif
     uniform vec3 u_lightColor;
     uniform vec3 u_lightPosition;
@@ -107,79 +107,78 @@
         const vec4 bitShift = vec4(1.0, 1.0/256.0, 1.0/(256.0*256.0), 1.0/(256.0*256.0*256.0));
         return dot(rgbaDepth, bitShift);
     }
+    // pcf消除阴影边缘的锯齿
+    float pcf(float cosTheta,vec4 v_positionFromLight) {
+        float shadows = 0.0;
+        float opacity = 0.4;// 基底阴影alpha值
+        float texelSize = 1.0/2048.0;// 阴影像素尺寸,值越小阴影越逼真
+        vec4 rgbaDepth;
+        // 将xyz坐标从齐次坐标区间[-1,1]归一化为纹理使用的[0,1]，xy分量用于查找纹理颜色值rgba，z分量就是在光源坐标系下的深度值; 
+        vec3 shadowCoord = (v_positionFromLight.xyz/v_positionFromLight.w)/2.0 + 0.5;
+        // 根据光线与表面的夹角计算偏移量,用于消除马赫带
+        float bias = 0.005 * tan(acos(cosTheta));
+        bias = clamp(bias, 0.0015, 0.01);
+
+        for(float y=-1.5; y <= 1.5; y += 1.0){
+            for(float x=-1.5; x <=1.5; x += 1.0){
+                rgbaDepth = texture2D(u_shadowMap, shadowCoord.xy + vec2(x,y) * texelSize);
+                shadows += step(shadowCoord.z - bias, unpack(rgbaDepth));
+            }
+        }
+        shadows /= 16.0;
+        return min(opacity + shadows, 1.0);
+        //不使用pcf的方案
+        //vec4 rgbaDepth = texture2D(u_shadowMap, shadowCoord.xy);// 获取指定纹理坐标处的像素颜色rgba
+        //float depth = unpack(rgbaDepth); // 从纹理颜色值(rgba)解析出阴影深度值z
+        //float visibility = (shadowCoord.z > depth + bias) ? 0.5 : 1.0;//大于阴影贴图中的z值,说明在阴影中
+    }
     void main() {
-        // 对法线归一化，因为其内插之后长度不一定是1
+        // 对法线归一化，因为内插之后长度不一定是1
         vec3 normal = normalize(v_normal);
-        // 计算光线方向
-        // 点光源(光源位置-顶点位置)并归一化
+        
+        /**
+        * 计算光线方向
+        */
+        // 点光源反向 光源位置-顶点位置
         vec3 lightDirection = normalize(u_lightPosition - v_position.xyz);
-        // 平行光源
+        // 平行光源反向
         // vec3 lightDirection = normalize(u_lightPosition);
-        // 计算光线方向和法向量点积(夹角的余弦值:90deg为与平面平行,0deg为与平面垂直)
+
+        // 光线方向和法向量的夹角，它们的点积即可求出夹角余弦值(范围0-90度)
         float cosTheta = max(dot(lightDirection, normal), 0.0);
 
-        // 计算漫反射亮度
+        // 漫反射亮度
         vec3 diffuse = u_lightColor * v_color.rgb * cosTheta;
-        // 计算环境光亮度
+        
+        // 环境光亮度
         vec3 ambient = u_ambientColor * v_color.rgb;
         
         /**
          * 高光部分
          */
-        float shininess =10.0;
-        vec3 specularColor =vec3(1.0,1.0,1.0);//镜面反射光颜色
+        float shininess =50.0;
+        vec3 specularColor = vec3(1.0,1.0,1.0);//镜面反射光颜色
         vec3 viewDirection = normalize(u_viewPosition-v_position.xyz);// 反射方向
 
-        // phong 冯氏模型 高光部分更加集中
-        vec3 reflectionDirection = reflect(-lightDirection, normal);
-        float specularWeighting = pow(max(dot(reflectionDirection, viewDirection), 0.0), shininess);
+        // phong 模型 高光部分更加集中
+        // vec3 reflectionDirection = normalize(reflect(-lightDirection, normal));
+        // float specularWeighting = pow(max(dot(reflectionDirection, viewDirection), 0.0), shininess);
 
-        // Blinn-Phong 宾氏模型 高光过渡更加自然
-        // vec3 halfwayDir = normalize(lightDirection + viewDirection);
-        // float specularWeighting = pow(max(dot(normal, halfwayDir), 0.0), shininess);
+        // Blinn-Phong 模型 高光过渡更自然
+        vec3 halfwayDir = normalize(lightDirection + viewDirection);
+        float specularWeighting = pow(max(dot(normal, halfwayDir), 0.0), shininess);
 
         // 计算镜面高光亮度
         vec3 specular = specularColor.rgb * specularWeighting;
-        // gl_FragColor = vec4((spotLight + ambient + specular), v_color.a);
         
-        /**
-         * 阴影部分
-         */
-        float bias = 0.005*tan(acos(cosTheta));// 根据光线与表面的夹角计算偏移量,用于消除马赫带
-        bias = clamp(bias, 0.0015,0.01);
-        // float bias = max(0.005 * (1.0 - dot(normal, lightDirection)), 0.0015);  
-        // 因为阴影纹理坐标和该坐标(光源处观察到的坐标),视点都是在光源处(使用的都是光源处的mvp矩阵);
-        // 所以使用该坐标计算出的就是纹理的坐标, 再通过纹理坐标就能找到光源处对应的z值
-        // xy将坐标区间从[-1,1]转为gl_FragCoord的区间[0,1],z是求出gl_FragCoord的深度值z(与后面的纹理z比较),刚好它们的求值方式都是一样
-        vec3 shadowCoord = (v_positionFromLight.xyz/v_positionFromLight.w)/2.0 + 0.5;
-        // vec4 rgbaDepth = texture2D(u_shadowMap, shadowCoord.xy);// 获取指定纹理坐标处的像素颜色rgba
-        // float depth = unpack(rgbaDepth); //将纹理颜色值(gl_fragColor)解析出阴影深度值z(光源视点)
-        // float visibility = (shadowCoord.z > depth + bias) ? 0.6 : 1.0;//大于阴影的z轴,说明在阴影中并显示为阴影*0.6,否则为正常颜色*1.0
-
-        // PCF 消除阴影边缘的锯齿
-        float shadows =0.0;
-        float opacity=0.6;// 阴影alpha值, 值越小暗度越深
-        float texelSize=1.0/2048.0;// 阴影像素尺寸,值越小阴影越逼真
-        vec4 rgbaDepth;
-
-        for(float y=-1.5; y <= 1.5; y += 1.0){
-            for(float x=-1.5; x <=1.5; x += 1.0){
-                rgbaDepth = texture2D(u_shadowMap, shadowCoord.xy+vec2(x,y)*texelSize);
-                shadows += shadowCoord.z-bias > unpack(rgbaDepth) ? 1.0 : 0.0;
-            }
-        }
-        shadows/=16.0;
-        float visibility=min(opacity+(1.0-shadows),1.0);
-        // visibility=visibility>0.8?1.0:visibility;
-        specular=visibility < 1.0 ? vec3(0.0,0.0,0.0): specular;// 阴影处没有高光
+        // pcf 通过光源坐标系下的位置找出阴影纹理的颜色值，再由颜色值rgba分解出深度值z
+        float visibility = pcf(cosTheta,v_positionFromLight);
+        
+        specular *= step(visibility,1.0);// 阴影处没有高光
         gl_FragColor = vec4((diffuse + ambient + specular) * visibility, v_color.a);
     }
 </script>
 <script>
-// 阴影贴图是一种使用深度纹理来为渲染阴影提供解决方案的多通道计算。
-// 它的关键是，就是用投射光源代替最终视口来观察场景。通过移动视口到光源位置，可以观察到这个位置每个东西都是明亮的，因为从光的角度来看是没有阴影的。
-// 从光源的角度将场景的深度渲染到一张深度缓冲区中，我们可以在场景中获得一张阴影或者无阴影的贴图.
-
 var canvas = document.getElementById('canvas'),
     gl = get3DContext(canvas),
     OFFSCREEN_WIDTH = 2048,
@@ -208,21 +207,17 @@ function main() {
 
     // 获取对应图形的缓冲区对象
     var planeBuffers = createBufferInfoFromArrays(gl,Plane());
-    var cubeBuffers = createBufferInfoFromArrays(gl,Cube([1,0.2,0,1]));
-    var sphereBuffers = createBufferInfoFromArrays(gl,Sphere(50,[0.2,1,0,1]));
-    var cylinderBuffers = createBufferInfoFromArrays(gl,Cylinder(0.8,4,40,[0,0.3,1,1]));
-    var coneBuffers = createBufferInfoFromArrays(gl,Cone(1,4,40,[1,1,0,1]));
+    var cubeBuffers = createBufferInfoFromArrays(gl,Cube([0.8,0.1,0.3,1]));
+    var sphereBuffers = createBufferInfoFromArrays(gl,Sphere(50,[0.2,0.8,0.2,1]));
+    var cylinderBuffers = createBufferInfoFromArrays(gl,Cylinder(0.8,4,40,[0.2,0.2,0.8,1]));
+    var coneBuffers = createBufferInfoFromArrays(gl,Cone(1,4,40,[0.9,0.9,0.1,1]));
 
     // 初始化帧缓冲区对象 (FBO)  
-    var fbo = initFramebufferObject(gl);
+    var fbo = createFramebuffer(gl,{ w: OFFSCREEN_WIDTH, h: OFFSCREEN_HEIGHT });
     if (!fbo) {
         console.log('Failed to initialize frame buffer object');
         return;
     }
-
-    // 激活0号纹理单元,并将纹理对象绑定到该单元
-    gl.activeTexture(gl.TEXTURE0);
-    gl.bindTexture(gl.TEXTURE_2D, fbo.texture);
 
     // 设置背景设并开启隐藏面消除功能 
     gl.clearColor(0, 0, 0, 1);
@@ -266,33 +261,26 @@ function main() {
 
         viewProjMatrix.setPerspective(30, canvas.width / canvas.height, 1.0, 100.0);
         viewProjMatrix.lookAt(eyeX,eyeY,eyeZ, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0);
+
         gl.bindFramebuffer(gl.FRAMEBUFFER, fbo); // 切换绘制场景为帧缓冲区  
         gl.viewport(0, 0, OFFSCREEN_HEIGHT, OFFSCREEN_HEIGHT); // 设置帧绘图区域
-        gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT); // Clear FBO    
+        gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT); // 清空颜色缓冲和深度缓冲
         /*
-         *   阴影着色器
+         * 阴影着色器
          */ 
-        gl.useProgram(shadowProgram.program);
-        
-        // gl.enable(gl.CULL_FACE);
-        // gl.cullFace(gl.FRONT);
+        gl.useProgram(shadowProgram.program);    
         // 绘制物体
         drawCone(shadowProgram,viewProjMatrixFromLight);
         drawCylinder(shadowProgram,viewProjMatrixFromLight);
         drawSphere(shadowProgram,viewProjMatrixFromLight);
         drawCube(shadowProgram,viewProjMatrixFromLight);
-        // gl.cullFace(gl.BACK);
-        // gl.disable(gl.CULL_FACE);
-                
         // 绘制平面
         drawPlane(shadowProgram,viewProjMatrixFromLight);
         
-        // 将帧缓冲区切换为正常的缓冲区
-        gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+
+        gl.bindFramebuffer(gl.FRAMEBUFFER, null);//解除绑定帧缓冲区，即切换为正常的缓冲区
         gl.viewport(0, 0, canvas.width, canvas.height);//设置绘图区域
-         // 清屏和深度缓冲
-        gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-        
+        gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);// 清空颜色缓冲和深度缓冲
         /*
          *  正常的着色器
          */ 
@@ -420,18 +408,18 @@ function draw(gl, program, buffer,mvpMatrix) {
     // 输出attribute对应的数据缓冲
     setBuffersAndAttributes(gl,program,buffer);
     setUniforms(program,{u_mvpMatrix: mvpMatrix.elements});
-    gl.drawElements(gl.TRIANGLES, buffer.numElements, buffer.indexType, 0);
+    gl.drawElements(gl.TRIANGLES, buffer.count, buffer.indexType, 0);
 }
 
 canvas.addEventListener('mousedown', function(e) {
-    START = WindowToCanvas(canvas, e.clientX, e.clientY);
+    START = windowToCanvas(canvas, e.clientX, e.clientY);
     canvas.addEventListener('mousemove', mouseMove, false);
     canvas.addEventListener('mouseup', mouseUp, false);
     canvas.addEventListener('mouseout', mouseUp, false);
 }, false);
 
 function mouseMove(e) {
-    var end = WindowToCanvas(canvas, e.clientX, e.clientY),
+    var end = windowToCanvas(canvas, e.clientX, e.clientY),
         a = Math.sqrt(Math.pow(START.x - CENTER.x, 2) + Math.pow(START.y - CENTER.y, 2)),
         b = Math.sqrt(Math.pow(end.x - CENTER.x, 2) + Math.pow(end.y - CENTER.y, 2)),
         radX = (START.x - end.x) * 0.01,
