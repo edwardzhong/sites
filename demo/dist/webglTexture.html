@@ -190,9 +190,9 @@
     
     (async function (){
         const ret = await Promise.all([
-            loadTexture('/model/floor_tiles_06_diff_1k.jpg'),
-            loadTexture('/model/floor_tiles_06_spec_1k.jpg',1),
-            loadTexture('/model/floor_tiles_06_nor_1k.jpg',2)
+            loadTexture('../img/floor_tiles_06_diff_1k.jpg'),
+            loadTexture('../img/floor_tiles_06_spec_1k.jpg',1),
+            loadTexture('../img/floor_tiles_06_nor_1k.jpg',2)
         ]);
         document.getElementsByTagName('h4')[0].style.display = 'none';
         setBuffersAndAttributes(gl, program, buffer);
