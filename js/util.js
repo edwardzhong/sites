@@ -395,9 +395,30 @@
         }
     };
 
+        /**
+     * 设置canvas pixelRatio，加强高清屏效果
+     * @param {Number} ratio 
+     */
+    function setPixelRatio(canvas,ratio) {
+        ratio = ratio || window.devicePixelRatio;
+        var cw = canvas.width;
+        var ch = canvas.height;
+        var w  = Math.floor(canvas.clientWidth  * ratio);
+        var h = Math.floor(canvas.clientHeight * ratio);
+
+        // 检查画布尺寸是否相同
+        if (cw !== w || ch !== h) {
+            canvas.width  = w;
+            canvas.height = h;
+            canvas.style.width = cw +'px';
+            canvas.style.height = ch +'px';
+        }
+    }
+
     window.Random = Random;
     window.RandomColor = RandomColor;
     window.RandomHsl = RandomHsl;
+    window.setPixelRatio = setPixelRatio;
     window.CaptureMouse = CaptureMouse;
     window.WindowToCanvas = WindowToCanvas;
     window.WindowToWebgl = WindowToWebgl;

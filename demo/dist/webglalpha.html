@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+<title>alpha混合半透明物体</title>
+<link rel="stylesheet" href="../../css/pure-min.css">
+<link rel="stylesheet" href="../../css/fontello.css">
+<link rel="stylesheet" href="../css/style.css">
+
+<!--[if lt IE 9]>
+<script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+<![endif]-->
+</head>
+<body>
+	<div class="content">
+		<a class="github" href="https://github.com/edwardzhong">
+			<img src="../img/github.png" alt="">
+		</a>
+		<header class="header">
+			<h1><a href="../index.html">Jeff Zhong's Demo</a></h1>
+		</header>
+		<div class="main grid">
+		<a class="effect-list" href="../index.html">&larr;&nbsp;effect list</a>
+		
+<h2>alpha混合半透明物体</h2>
+<canvas id="canvas" width="700" height="500"></canvas>
+ </div>
+		<footer class="footer">
+			<p>Copyright &copy; 2017 <a href="https://github.com/edwardzhong">Jeff Zhong</a></p>
+		</footer>
+	</div>
+
+<script src="../../js/webgl-util.js"></script>
+<script src="../../js/util.js"></script>
+<script src="../../js/matrix.js"></script>
+<script src="../../js/polygon.js"></script>
+<script type="x-shader/x-vertex" id="vs">
+    attribute vec4 a_position;
+    attribute vec4 a_normal;
+    uniform mat4 u_modelMatrix;
+    uniform mat4 u_vpMatrix;
+    varying vec3 v_normal;
+    varying vec3 v_position;
+  
+    void main() {
+      gl_Position = u_vpMatrix * u_modelMatrix * a_position;
+      v_normal = vec3(u_modelMatrix * a_normal);
+      v_position= vec3(u_modelMatrix * a_position);
+    }
+</script>
+<script type="x-shader/x-fragment" id="fs">
+    precision mediump float;
+    uniform vec3 u_viewPosition;
+    uniform vec3 u_lightPosition;
+    uniform vec3 u_lightColor;
+    uniform vec3 u_ambientColor;
+    uniform vec3 u_specularColor;
+    uniform float u_shininess;
+	uniform vec4 u_color;
+	varying vec3 v_normal;
+	varying vec3 v_position;
+
+	void main() {
+	    vec3 normal = normalize(v_normal);
+        vec3 ambient = u_ambientColor * u_color.rgb;
+        
+	    vec3 lightDirection = normalize(u_lightPosition - v_position);
+	    float cosTheta = max(dot(lightDirection, normal), 0.0);
+        vec3 diffuse = u_lightColor * u_color.rgb * cosTheta;
+        
+        vec3 viewDirection = normalize(u_viewPosition - v_position);
+        vec3 halfwayDir = normalize(lightDirection + viewDirection);
+        float specularIntensity = pow(max(dot(normal, halfwayDir), 0.0), u_shininess);
+        vec3 specular = u_specularColor.rgb * specularIntensity;
+
+        gl_FragColor = vec4(ambient + diffuse + specular, u_color.a);
+	}
+</script>
+<script>
+var canvas = document.getElementById('canvas'),
+    gl = get3DContext(canvas),
+    viewPosition = new Vector3([0, 6, 15]),
+    lightPosition = new Vector3([0, 9, - 15]),
+    viewPoint = [0,0,0],
+    Polygons = [];
+
+
+function main() {
+    if (!gl) {
+        console.log('Failed to get the rendering context for WebGL');
+        return;
+    }
+
+    var program = createProgramInfo(gl, 'vs', 'fs'),
+        planeBuffer = createBufferInfoFromArrays(gl, Plane([0.7,0.7,0.7,1])),
+        sphereBuffer = createBufferInfoFromArrays(gl, Sphere(50)),
+        cubeBuffer = createBufferInfoFromArrays(gl, Cube()),
+        cylinderBuffer = createBufferInfoFromArrays(gl, Cylinder(1, 3, 40)),
+        coneBuffer = createBufferInfoFromArrays(gl, Cone(1, 3, 40)),
+        planeVao = createVertexArrayInfo(gl, program, planeBuffer)
+        vaos = [
+            createVertexArrayInfo(gl, program, coneBuffer),
+            createVertexArrayInfo(gl, program, sphereBuffer),
+            createVertexArrayInfo(gl, program, cubeBuffer),
+            createVertexArrayInfo(gl, program, cylinderBuffer)
+        ];
+
+
+for (var i = 0; i < 8; i++) {
+    let color = Color.rgbToWebgl(Color.hslToRgb(RandomHsl()));
+    if(i > 3){
+        color[3] = (i - 3)/10;
+    }
+    
+    Polygons.push({
+        x: Random(-9,9),
+        y: Random(0, 6),
+        z: Random(-5,5),
+        color: color
+    });
+}
+
+    gl.clearColor(0.1, 0.1, 0.1, 1);
+    gl.enable(gl.DEPTH_TEST);
+    setPixelRatio(canvas);
+    gl.viewport(0, 0, canvas.width, canvas.height);
+    gl.useProgram(program.program);
+
+    let modelMatrix = new Matrix4(),
+        vpMatrix = new Matrix4(),
+        cameraMatrix = new Matrix4();
+
+    setUniforms(program, {
+        u_lightPosition: lightPosition.elements,
+        u_lightColor: [1, 1, 1],
+        u_ambientColor: [0.8, 0.8, 0.8],
+        u_specularColor : [1,1,1],
+        u_shininess:20
+    });
+
+    (function animate() {
+        cameraMatrix.rotate(1,0,1,0);
+        viewPoint = cameraMatrix.multiplyVector3(viewPosition);
+        // 每次重置mvp矩阵
+        vpMatrix.setPerspective(60, canvas.width / canvas.height, 1.0, 200.0);
+        vpMatrix.lookAt( ...viewPoint.elements, 0, 0, 0, 0, 1, 0);
+
+        gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+        setBuffersAndAttributes(gl, program, planeVao );
+        
+        
+        modelMatrix.setTranslate(0,0,0);
+        modelMatrix.scale(20,1,20);
+        setUniforms(program, {
+            u_modelMatrix: modelMatrix.elements,
+            u_viewPosition: viewPoint.elements,
+            u_vpMatrix: vpMatrix.elements,
+            u_specularColor: [0.3,0.3,0.3],
+            u_color: [0.25,0.25,0.2,1]
+        });
+        drawBufferInfo(gl, planeVao);
+
+        let vao;
+        Polygons.forEach((p, i) => {
+            vao = vaos[i % vaos.length];
+            setBuffersAndAttributes(gl, program, vao );
+            modelMatrix.setTranslate(p.x, p.y, p.z);
+            setUniforms(program, {
+                u_modelMatrix: modelMatrix.elements,
+                u_viewPosition: viewPoint.elements,
+                u_vpMatrix: vpMatrix.elements,
+                u_color: p.color
+            });
+            if(i < 4){
+                gl.depthMask(true);
+                gl.disable(gl.BLEND);
+            } else {
+                gl.depthMask(false);
+                gl.enable(gl.BLEND);
+                gl.blendFunc( gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA );
+            }
+            drawBufferInfo(gl, vao);
+        });
+        gl.bindVertexArray(null);
+        requestAnimationFrame(animate);
+    }());
+}
+main();
+</script>
+
+</body>
+</html>
