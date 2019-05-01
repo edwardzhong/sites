@@ -1007,7 +1007,6 @@
         
         // 图片加载之前立即渲染纹理，先用 1x1 蓝色像素填充纹理
         gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, new Uint8Array([0, 0, 255, 255]));
-
         if(opt.url){
             const image = new Image();
             image.onload = function(){

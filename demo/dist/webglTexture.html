@@ -23,17 +23,18 @@
 		<div class="main grid">
 		<a class="effect-list" href="../index.html">&larr;&nbsp;effect list</a>
 		
-<h4>加载图像较慢，请耐心等待...</h4>
-<label for="viewAngle">相机角度：</label>
-<input type="range" name="viewAngle" id="viewAngle" step="1" min="0" max="360" value="0">
+<label for="viewAngle">相机x轴角度：</label>
+<input type="range" name="viewAngle" id="viewAngle" step="1" min="-90" max="90" value="0">
 <span id="vav">0</span>
 <br>
-<label for="lightAngle">光线角度：</label>
-<input type="range" name="lightAngle" id="lightAngle" step="1" min="0" max="360" value="0">
+<label for="lightAngle">光源x轴角度：</label>
+<input type="range" name="lightAngle" id="lightAngle" step="1" min="-90" max="90" value="0">
 <span id="lav">0</span>
 <br>
-<label for="isMap">高光贴图</label>
-<input type="checkbox" name="isMap" id="isMap"><br>
+<label for="isSpec">高光贴图</label>
+<input type="checkbox" name="isSpec" id="isSpec"><br>
+<label for="isNorm">法线贴图</label>
+<input type="checkbox" name="isNorm" id="isNorm"><br>
 <canvas id="canvas" width="600" height="600"></canvas>
  </div>
 		<footer class="footer">
@@ -61,62 +62,87 @@
     } 
 </script>
 <script type="x-shader/x-fragment" id="fs">
-    precision mediump float;
+    #extension GL_OES_standard_derivatives : enable
+    precision highp float;
     uniform vec3 u_viewPosition;
     uniform vec3 u_lightPosition;
     uniform vec3 u_specularColor;
     uniform float u_shininess;
     uniform vec3 u_diffuseColor;
     uniform vec3 u_ambientColor;
-    uniform sampler2D u_samplerD;
-    uniform sampler2D u_samplerS;
-    uniform float u_isMap;
+    uniform sampler2D u_diffMap;
+    uniform sampler2D u_specMap;
+    uniform sampler2D u_normMap;
+    uniform float u_spec;
+    uniform float u_norm;
+    uniform float bumpScale;
     varying vec3 v_position;
     varying vec2 v_texcoord;
     varying vec3 v_normal;
+    vec2 dHdxy_fwd() {
+        vec2 dSTdx = dFdx( v_texcoord );
+        vec2 dSTdy = dFdy( v_texcoord );
+        float Hll = bumpScale * texture2D( u_normMap, v_texcoord ).x;
+        float dBx = bumpScale * texture2D( u_normMap, v_texcoord + dSTdx ).x - Hll;
+        float dBy = bumpScale * texture2D( u_normMap, v_texcoord + dSTdy ).x - Hll;
+        return vec2( dBx, dBy );
+    }
+    vec3 perturbNormalArb( vec3 surf_pos, vec3 surf_norm, vec2 dHdxy ) {
+        vec3 vSigmaX = vec3( dFdx( surf_pos.x ), dFdx( surf_pos.y ), dFdx( surf_pos.z ) );
+        vec3 vSigmaY = vec3( dFdy( surf_pos.x ), dFdy( surf_pos.y ), dFdy( surf_pos.z ) );
+        vec3 vN = surf_norm;
+        vec3 R1 = cross( vSigmaY, vN );
+        vec3 R2 = cross( vN, vSigmaX );
+        float fDet = dot( vSigmaX, R1 );
+        fDet *= ( float( gl_FrontFacing ) * 2.0 - 1.0 );
+        vec3 vGrad = sign( fDet ) * ( dHdxy.x * R1 + dHdxy.y * R2 );
+        return normalize( abs( fDet ) * surf_norm - vGrad );
+    }
     
     void main() {
         vec3 normal = normalize(v_normal);
-        vec4 diffMap = texture2D(u_samplerD, v_texcoord);
-        vec4 specMap = texture2D(u_samplerS, v_texcoord);
-
-        //光线方向
+        if(u_norm >= 1.0){
+            normal = perturbNormalArb( -v_position, normal, dHdxy_fwd());
+        }
+        // 光线方向
         vec3 lightDirection = normalize(u_lightPosition - v_position);
-        // 计算光线方向和法向量夹角
+        // 光线方向和法向量夹角
         float nDotL = max(dot(lightDirection, normal), 0.0);
-        // 漫反射光亮度
-        vec3 diffuse = u_diffuseColor * nDotL * diffMap.rgb;
-        // 环境光亮度
-        vec3 ambient = u_ambientColor * diffMap.rgb;
-
-        // 观察方向的单位向量V
-        vec3 eyeDirection = normalize(u_viewPosition - v_position);// 反射方向
-        // 镜面反射亮度权重
+        // 漫反射
+        vec4 diffuseColor = texture2D(u_diffMap, v_texcoord);
+        vec3 diffuse = u_diffuseColor * nDotL * diffuseColor.rgb;
+        // 环境光
+        vec3 ambient = u_ambientColor * diffuseColor.rgb;
+    
+        // 观察方向
+        vec3 eyeDirection = normalize(u_viewPosition - v_position);
+        // 镜面反射
         vec3 halfwayDir = normalize(lightDirection + eyeDirection);
         float specularIntensity = pow(max(dot(normal, halfwayDir), 0.0), u_shininess);
-        vec3 specular = u_specularColor * specularIntensity;
-        if(u_isMap == 1.0){
-            specular = (vec3(0.2,0.2,0.2) + specMap.rgb) * specularIntensity;
-        }
-        gl_FragColor = vec4(ambient + diffuse + specular, diffMap.a);
+        vec3 specular = ( u_spec == 0.0 ? u_specularColor : texture2D(u_specMap, v_texcoord).rgb) * specularIntensity;
+        gl_FragColor = vec4(ambient + diffuse + specular, diffuseColor.a);
     }
 </script>
 <script>
-    const canvas = document.getElementById("canvas"),
-        gl = get3DContext(canvas, true),
-        va = document.getElementById('viewAngle'),
-        la = document.getElementById('lightAngle'),
-        vav = document.getElementById('vav'),
-        lav = document.getElementById('lav'),
-        isMap = document.getElementById('isMap');
-
+    const canvas = document.getElementById("canvas");
+    const gl = get3DContext(canvas, true);
+    const va = document.getElementById('viewAngle');
+    const la = document.getElementById('lightAngle');
+    const vav = document.getElementById('vav');
+    const lav = document.getElementById('lav');
+    const isSpec = document.getElementById('isSpec');
+    const isNorm = document.getElementById('isNorm');
     const program = createProgramInfo(gl, 'vs','fs');
-    const arrays = {
+    const arrays= {
         position: [
-            -1, 0, -1,
-            -1, 0, 1,
-            1, 0, -1,
-            1, 0, 1
+            -1, 1, 0,
+            -1, -1, 0,
+            1, 1, 0,
+            1, -1, 0
+            // -1, 0, -1,
+            // -1, 0, 1,
+            // 1, 0, -1,
+            // 1, 0, 1
         ],
         texcoord: [
             0.0, 1.0,
@@ -127,74 +153,95 @@
         normal: [ 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1 ],
     };
     const buffer = createBufferInfoFromArrays( gl, arrays );
-    let vpMatrix = new Matrix4();
-    let modelMatrix = new Matrix4();
-    let cameraMatrix = new Matrix4();
-    let lightMatrix = new Matrix4();
-    let viewPosition = new Vector3([0, 3, 3]),
-        lightPosition = new Vector3([0, -3, 3]),
-        vAngle = 0, lAngle = 0;
+    
+    let vpMatrix = new Matrix4(),
+        modelMatrix = new Matrix4(),
+        cameraMatrix = new Matrix4(),
+        lightMatrix = new Matrix4(),
+        viewPosition = new Vector3([0, 0, 5]),
+        lightPosition = new Vector3([0, 0, 6]),
+        vAngle = 0, lAngle = 0,
+        viewPoint = null,
+        lightPoint = null,
+        u_spec = 0,
+        u_norm = 0;
 
     // 设置背景颜色
     gl.clearColor(0.0, 0.0, 0.0, 1.0);
     // 开启隐藏面消除
     gl.enable(gl.DEPTH_TEST);
-    // 设置绘图区域
+    // 根据dpr设置画布大小
+    setPixelRatio(canvas);
+    // 设置绘图区域，必须上面设置画布大小之后调用
     gl.viewport(0, 0, canvas.width, canvas.height);
-  
+
     gl.useProgram(program.program);
-    // modelMatrix.setRotate(-15,1,0,0);
     setUniforms(program, {
         u_modelMatrix: modelMatrix.elements,
-        u_diffuseColor: [0.4,0.4,0.4],
-        u_ambientColor: [0.4,0.4,0.4],
+        u_diffuseColor: [0.5,0.5,0.5],
+        u_ambientColor: [0.5,0.5,0.5],
         u_specularColor: [1,1,1],
         u_shininess: 30,
-        u_isMap: 0
+        bumpScale: 1,
+        u_diffMap: 0,
+        u_specMap: 1,
+        u_normMap: 2
     });
     
     (async function (){
         const ret = await Promise.all([
-            loadTexture('../img/floor_tiles_06_diff_1k.jpg'),
-            loadTexture('../img/floor_tiles_06_spec_1k.jpg',1)
+            loadTexture('/model/floor_tiles_06_diff_1k.jpg'),
+            loadTexture('/model/floor_tiles_06_spec_1k.jpg',1),
+            loadTexture('/model/floor_tiles_06_nor_1k.jpg',2)
         ]);
         document.getElementsByTagName('h4')[0].style.display = 'none';
+        setBuffersAndAttributes(gl, program, buffer);
         draw();
     })()
 
     va.oninput = function(e){
         vAngle = this.value;
         draw();
-        vav.innerHTML=vAngle;
+        vav.innerHTML = vAngle;
     };
     la.oninput = function(e){
         lAngle = this.value;
         draw();
-        lav.innerHTML=lAngle;
+        lav.innerHTML = lAngle;
     };
-    isMap.onclick = function(){
-        setUniforms(program, { u_isMap: this.checked ? 1 : 0 });
+    isSpec.onclick = function() {
+        u_spec = this.checked ? 1 : 0;
         draw();
     }
-    let viewPoint = null;
-    let lightPoint = null;
+    isNorm.onclick = function() {
+        u_norm = this.checked ? 1 : 0;
+        draw();
+    }
 
-    function draw(){
-        cameraMatrix.setRotate(vAngle,0,1,0);
+    function draw() {
+        //模型旋转
+        // modelMatrix.rotate(1,0,1,0);
+        
+        //直接计算视点
+        // angleY = (++ angleY)%360;
+        // z = r * Math.sin(Math.PI/180 * angleY);
+        // x = r * Math.cos(Math.PI/180 * angleY);
+
+        //使用矩阵计算视点
+        cameraMatrix.setRotate(vAngle,1,0,0);
         viewPoint = cameraMatrix.multiplyVector3(viewPosition);
 
-        lightMatrix.setRotate(lAngle,0,1,0);
+        lightMatrix.setRotate(lAngle,1,0,0);
         lightPoint = lightMatrix.multiplyVector3(lightPosition);
 
         vpMatrix.setPerspective( 30, canvas.width / canvas.height, 1, 300 );
         vpMatrix.lookAt( ...viewPoint.elements, 0, 0, 0, 0, 1, 0);
-        setBuffersAndAttributes(gl, program, buffer);
         setUniforms(program, {
             u_viewPosition: viewPoint.elements,
             u_lightPosition: lightPoint.elements,
             u_vpMatrix: vpMatrix.elements,
-            u_samplerD: 0,
-            u_samplerS: 1
+            u_spec: u_spec,
+            u_norm: u_norm
         });
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
         drawBufferInfo(gl, buffer, gl.TRIANGLE_STRIP);
@@ -203,13 +250,14 @@
     function loadTexture(url,unit) {
         const texture = gl.createTexture();
         unit = gl.TEXTURE0 + (unit||0);
-        gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, 1);
         gl.activeTexture(unit);
+        gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, 1);
         gl.bindTexture(gl.TEXTURE_2D, texture);
         
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
         
         let textureInfo = {
             width: 1,
@@ -223,11 +271,29 @@
                 textureInfo.height = img.height;
                 gl.activeTexture(unit);
                 gl.bindTexture(gl.TEXTURE_2D, textureInfo.texture);
-                gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, img);
+                gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, img);
+                gl.generateMipmap(gl.TEXTURE_2D);
                 resolve(textureInfo);
             };
+            img.onerror = reject;
             img.src = url;
         });
+    }
+
+    function setPixelRatio(canvas,ratio) {
+        ratio = ratio || window.devicePixelRatio;
+        var cw = canvas.width;
+        var ch = canvas.height;
+        var w  = Math.floor(canvas.clientWidth  * ratio);
+        var h = Math.floor(canvas.clientHeight * ratio);
+
+        // 检查画布尺寸是否相同
+        if (cw  !== w || ch !== h) {
+            canvas.width  = w;
+            canvas.height = h;
+        }
+        canvas.style.width = cw +'px';
+        canvas.style.height = ch +'px';
     }
 </script>
 
