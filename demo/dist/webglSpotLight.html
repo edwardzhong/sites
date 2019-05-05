@@ -312,7 +312,7 @@ function main() {
 
     function drawPlane(program,vpMatrix){
         modelMatrix.setRotate(0, 1, 0, 0);
-        modelMatrix.scale(4,4,4);
+        modelMatrix.scale(5,5,5);
         mvpMatrix.set(vpMatrix);
         mvpMatrix.multiply(modelMatrix);
         if(program==shadowProgram){

@@ -995,60 +995,106 @@
     function createTexture(gl, opt, callback) {
         const texture = gl.createTexture();
         const unit = gl.TEXTURE0 + (opt.unit||0);
+        const flipY = !!opt.flipY;
+        const format = opt.format||gl.RGBA;
+        const target = opt.target||gl.TEXTURE_2D;
+        const cubeFaceOrder = [
+            gl.TEXTURE_CUBE_MAP_POSITIVE_X,//右
+            gl.TEXTURE_CUBE_MAP_NEGATIVE_X,//左
+            gl.TEXTURE_CUBE_MAP_POSITIVE_Y,//上
+            gl.TEXTURE_CUBE_MAP_NEGATIVE_Y,//下
+            gl.TEXTURE_CUBE_MAP_POSITIVE_Z,//前
+            gl.TEXTURE_CUBE_MAP_NEGATIVE_Z//后
+        ];
+        const w = opt.w||1;
+        const h = opt.h||1;
+
         // 激活纹理单元
         gl.activeTexture(unit);
         // 纹理对象绑定到该单元
-        gl.bindTexture(gl.TEXTURE_2D, texture);
+        gl.bindTexture(target, texture);
         // 设置纹理参数
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, opt.min||gl.LINEAR);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, opt.mag||gl.LINEAR);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, opt.wrapT||gl.REPEAT);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, opt.wrapS||gl.REPEAT);
-        
-        // 图片加载之前立即渲染纹理，先用 1x1 蓝色像素填充纹理
-        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, new Uint8Array([0, 0, 255, 255]));
-        if(opt.url){
-            const image = new Image();
-            image.onload = function(){
-                let source = image; 
-                const format = opt.format||gl.RGBA;
-                if(opt.scale && (opt.scale.x != 1 || opt.scale.y != 1)){
-                    // 使用 2d canvas 缩放纹理
-                    const canvas = document.createElement('canvas');
-                    const ctx = canvas.getContext('2d');
-                    let w = canvas.width = image.width;
-                    let h = canvas.height = image.height;
-                    let il = opt.scale.x;
-                    let jl = opt.scale.y;
-                    for(let i = 0; i < il; i++){
-                        for(let j=0; j < jl; j++){
-                            ctx.drawImage(image, i * w/il, j * h/jl, w/il, h/jl);
+        gl.texParameteri(target, gl.TEXTURE_MIN_FILTER, opt.min||gl.LINEAR);
+        gl.texParameteri(target, gl.TEXTURE_MAG_FILTER, opt.mag||gl.LINEAR);
+        gl.texParameteri(target, gl.TEXTURE_WRAP_T, opt.wrapT||gl.REPEAT);
+        gl.texParameteri(target, gl.TEXTURE_WRAP_S, opt.wrapS||gl.REPEAT);
+
+        if(typeof opt.src === 'string') {//TEXTURE_2D
+            if(target != gl.TEXTURE_2D){
+                throw new Error('the target must be gl.TEXTURE_2D');
+            }
+            loadImage(opt.src,target,function(){
+                //纹理贴图，根据原始图像创建所有的缩小级别，每个子图都是前一级的双线性插值，用于消除锯齿
+                gl.generateMipmap(target);
+                callback && callback(texture);
+            });
+        } else if(Array.isArray(opt.src)) { //TEXTURE_CUBE_MAP
+            if(target != gl.TEXTURE_CUBE_MAP){
+                throw new Error('the target must be gl.TEXTURE_CUBE_MAP');
+            }
+            const arr = opt.src;
+            let num = arr.length;
+            if(typeof arr[0] === 'string' ){
+                arr.forEach((a,i)=> {
+                    loadImage(a,cubeFaceOrder[i],function(){
+                        num--;
+                        if(num <= 0){
+                            gl.generateMipmap(target);
+                            callback && callback(texture);
                         }
+                    });
+                });
+            } else if(typeof arr[0] === 'number'){
+                if(num == 3 || num == 4){
+                    if(target != gl.TEXTURE_2D){
+                        throw new Error('the target must be gl.TEXTURE_2D');
                     }
-                    source = canvas;
+                    gl.texImage2D(target, 0, format, w, h, 0, format, gl.UNSIGNED_BYTE, new Uint8Array(arr));
+                    callback && callback(texture);
+                } else if(num == 18 || num == 24){
+                    if(target != gl.TEXTURE_CUBE_MAP){
+                        throw new Error('the target must be gl.TEXTURE_CUBE_MAP');
+                    }
+                    const l = num/6;
+                    for(let i = 0; i < 6; i++){
+                        gl.texImage2D(cubeFaceOrder[i], 0, format, w, h, 0, format, gl.UNSIGNED_BYTE, new Uint8Array(arr.slice(i*l,(i+1)*l)));
+                    }
+                    gl.generateMipmap(target);
+                    callback && callback(texture);
+                } else {
+                    throw new Error('格式不正确');
                 }
-                /**
-                 * 图片加载完后，重新加载到纹理
-                 */
+            }
+        } else {
+            throw new Error('格式不正确');
+        }
+        return texture;
+
+        function loadImage(src,tar,cb){
+            // 图片加载之前立即渲染纹理，先用 1x1 蓝色像素填充纹理
+            gl.texImage2D(tar, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, new Uint8Array([0, 0, 255, 255]));
+            const image = new Image();
+            //成功后重新加载到纹理
+            image.onload = function(){
                 // 再次激活纹理单元
                 gl.activeTexture(unit);
                 // 反转Y坐标
-                gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, 1);
-                // 将图像设置到纹理，重新绑定加载
-                gl.bindTexture(gl.TEXTURE_2D, texture);
-                // 上传图像到纹理
-                gl.texImage2D(gl.TEXTURE_2D, 0, format, format, gl.UNSIGNED_BYTE, source);
-                //纹理贴图，根据原始图像创建所有的缩小级别，每个子图都是前一级的双线性插值，用于消除锯齿
-                gl.generateMipmap(gl.TEXTURE_2D);
-                callback && callback(texture, source);
+                if(flipY){
+                    gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, 1);
+                }
+                // 重新绑定
+                gl.bindTexture(target, texture);
+                // 绑定图像到纹理
+                gl.texImage2D(tar, 0, format, format, gl.UNSIGNED_BYTE, image);
+                cb && cb();
             };
-            loadImageCORS(image, opt.url);
+            loadImageCORS(image, src);
         }
-        return texture;
     }
 
     //突破跨域加载图片
     function loadImageCORS(img, url) {
+        url = url.search('http') > -1? url :location.origin + url;
         if ((new URL(url)).origin !== window.location.origin) {
             img.crossOrigin = "";
         }

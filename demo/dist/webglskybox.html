@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+<title>天空盒</title>
+<link rel="stylesheet" href="../../css/pure-min.css">
+<link rel="stylesheet" href="../../css/fontello.css">
+<link rel="stylesheet" href="../css/style.css">
+
+<!--[if lt IE 9]>
+<script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+<![endif]-->
+</head>
+<body>
+	<div class="content">
+		<a class="github" href="https://github.com/edwardzhong">
+			<img src="../img/github.png" alt="">
+		</a>
+		<header class="header">
+			<h1><a href="../index.html">Jeff Zhong's Demo</a></h1>
+		</header>
+		<div class="main grid">
+		<a class="effect-list" href="../index.html">&larr;&nbsp;effect list</a>
+		
+<h2>天空盒</h2>
+<p id="loading">正在下载贴图，请稍后...</p>
+<canvas id="canvas" width="600" height="400"></canvas>
+ </div>
+		<footer class="footer">
+			<p>Copyright &copy; 2017 <a href="https://github.com/edwardzhong">Jeff Zhong</a></p>
+		</footer>
+	</div>
+
+<script src="../../js/webgl-util.js"></script>
+<script src="../../js/util.js"></script>
+<script src="../../js/matrix.js"></script>
+<script id="cvs" type="x-shader/x-vertex">
+    attribute vec4 a_position;
+    attribute vec4 a_normal;
+    uniform mat4 u_vpMatrix;
+    uniform mat4 u_modelMatrix;
+    varying vec3 v_position;
+    varying vec3 v_normal;
+    
+    void main() {
+        v_position = (u_modelMatrix * a_position).xyz;
+        v_normal = vec3(u_modelMatrix * a_normal);
+        gl_Position = u_vpMatrix * u_modelMatrix * a_position;
+    }
+    </script>
+    <script id="cfs" type="x-shader/x-fragment">
+    precision highp float;
+    varying vec3 v_position;
+    varying vec3 v_normal;
+    uniform samplerCube u_texture;
+    uniform vec3 u_viewPosition;
+    
+    void main() {
+        vec3 normal = normalize(v_normal);
+        vec3 eyeToSurfaceDir = normalize(v_position - u_viewPosition);
+        vec3 direction = reflect(eyeToSurfaceDir,normal);
+        gl_FragColor = textureCube(u_texture, direction);
+    }
+    </script>
+    <script type="x-shader/x-vertex" id="vs">
+    attribute vec4 a_position;
+    uniform mat4 u_modelMatrix;
+    uniform mat4 u_vpMatrix;
+    varying vec3 v_normal;
+    
+    void main() {
+        gl_Position = u_vpMatrix * u_modelMatrix * a_position;
+        //因为位置是以几何中心为原点的,可以用它们来作为法向量
+        v_normal = normalize(a_position.xyz);
+    }    
+    </script>
+    <script type="x-shader/x-fragment" id="fs">
+    precision highp float;
+    varying vec3 v_normal;
+    uniform samplerCube u_texture;
+    
+    void main() {
+        gl_FragColor = textureCube(u_texture, normalize(v_normal));
+    }    
+    </script>
+<script>
+const canvas = document.getElementById("canvas"),
+    gl = get3DContext(canvas, true);
+
+let box = {
+    position:[
+        -1, -1, -1,
+        -1,  1, -1,
+        1, -1,  -1,
+        -1,  1, -1,
+        1,  1,  -1,
+        1, -1,  -1,
+
+        -1, -1,  1,
+        1, -1,   1,
+        -1,  1,  1,
+        -1,  1,  1,
+        1, -1,   1,
+        1,  1,   1,
+
+        -1,  1, -1,
+        -1,  1,  1,
+        1,   1, -1,
+        -1,  1,  1,
+        1,   1,  1,
+        1,   1, -1,
+
+        -1, -1, -1,
+        1,  -1, -1,
+        -1, -1, 1,
+        -1, -1, 1,
+        1,  -1, -1,
+        1,  -1,  1,
+
+        -1,  -1, -1,
+        -1,  -1,  1,
+        -1,   1, -1,
+        -1,  -1,  1,
+        -1,   1,  1,
+        -1,   1, -1,
+
+        1,  -1, -1,
+        1,   1, -1,
+        1,  -1,  1,
+        1,  -1,  1,
+        1,   1, -1,
+        1,   1,  1,
+    ]
+};
+const normal=[
+        0, 0, -1,
+        0, 0, -1,
+        0, 0, -1,
+        0, 0, -1,
+        0, 0, -1,
+        0, 0, -1,
+
+        0, 0, 1,
+        0, 0, 1,
+        0, 0, 1,
+        0, 0, 1,
+        0, 0, 1,
+        0, 0, 1,
+
+        0, 1, 0,
+        0, 1, 0,
+        0, 1, 0,
+        0, 1, 0,
+        0, 1, 0,
+        0, 1, 0,
+
+        0, -1, 0,
+        0, -1, 0,
+        0, -1, 0,
+        0, -1, 0,
+        0, -1, 0,
+        0, -1, 0,
+
+        -1, 0, 0,
+        -1, 0, 0,
+        -1, 0, 0,
+        -1, 0, 0,
+        -1, 0, 0,
+        -1, 0, 0,
+
+        1, 0, 0,
+        1, 0, 0,
+        1, 0, 0,
+        1, 0, 0,
+        1, 0, 0,
+        1, 0, 0,
+    ];
+const program = createProgramInfo(gl, 'vs', 'fs');
+const buffer = createBufferInfoFromArrays( gl, box );
+const vao =  createVertexArrayInfo(gl, program, buffer);
+
+box.normal = normal;
+const cProgram = createProgramInfo(gl, 'cvs', 'cfs');
+const cBuffer =  createBufferInfoFromArrays( gl, box );
+const cVao =  createVertexArrayInfo(gl, cProgram, cBuffer);
+
+const matrix = new Matrix4();
+const vpMatrix = new Matrix4();
+const viewPosition = [0, 0, 0];//必须在原点，才能使纹理盒实现360度环绕，而看不出盒子的形状
+const lookTo = [0, 0.1, -1];//看向z为-1的背面
+
+const cameraMatrix = new Matrix4();
+const modelMatrix = new Matrix4();
+const cVpMatrix = new Matrix4();
+const cViewPosition = new Vector3([0,0,2]);
+
+let viewPoint = null;
+
+// 设置背景颜色
+gl.clearColor(0.0, 0.0, 0.0, 1.0);
+// 开启隐藏面消除
+gl.enable(gl.DEPTH_TEST);
+gl.viewport(0, 0, canvas.width, canvas.height);
+
+vpMatrix.setPerspective( 30, canvas.width / canvas.height, 0.1, 5 );
+vpMatrix.lookAt(...viewPosition, ...lookTo, 0, 1, 0);
+modelMatrix.setScale(0.2,0.2,0.2);
+
+createTexture(gl,{ target: gl.TEXTURE_CUBE_MAP, src:[
+    '../img/sorbin_rt.jpg',
+    '../img/sorbin_lf.jpg',
+    '../img/sorbin_up.jpg',
+    '../img/sorbin_dn.jpg',
+    '../img/sorbin_bk.jpg',
+    '../img/sorbin_ft.jpg',
+]}, function(){
+    document.getElementById('loading').style.display='none';
+    draw();
+});
+
+function draw(){
+    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+    //天空盒
+    gl.useProgram(program.program);
+    // 禁止写入深度缓存，造成背景在很远的假象
+    gl.depthMask(false);
+    gl.disable(gl.CULL_FACE);
+
+    matrix.rotate(0.1,0,1,0);
+    setBuffersAndAttributes(gl, program, vao);
+    setUniforms(program, {  
+        u_texture:0,
+        u_vpMatrix: vpMatrix.elements,
+        u_modelMatrix: matrix.elements
+    });
+    gl.drawArrays(gl.TRIANGLES, 0, vao.count);
+
+    //立方体
+    gl.useProgram(cProgram.program);
+    gl.enable(gl.CULL_FACE);
+
+    //上面天空盒旋转0.1度 对应 此处相机旋转0.1度
+    cameraMatrix.rotate(0.1,0,1,0);
+    viewPoint = cameraMatrix.multiplyVector3(cViewPosition);
+    cVpMatrix.setPerspective( 30, canvas.width / canvas.height, 0.1, 5 );
+    cVpMatrix.lookAt(...viewPoint.elements, 0, 0, 0, 0, 1, 0);
+
+    modelMatrix.rotate(0.5,1,1,1);
+    setBuffersAndAttributes(gl, cProgram, cVao);
+    setUniforms(cProgram, {
+        u_texture:0,
+        u_vpMatrix: cVpMatrix.elements,
+        u_viewPosition: viewPoint.elements,
+        u_modelMatrix: modelMatrix.elements
+    });
+    gl.drawArrays(gl.TRIANGLES, 0, cVao.count);
+    requestAnimationFrame(draw);
+}
+</script>
+
+</body>
+</html>

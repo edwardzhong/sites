@@ -108,7 +108,7 @@ function main() {
 
 
 for (var i = 0; i < 8; i++) {
-    let color = Color.rgbToWebgl(Color.hslToRgb(RandomHsl()));
+    let color = Color.rgbToWebgl(Color.hslToRgb(randomHsl()));
     if(i > 3){
         color[3] = (i - 3)/10;
     }
