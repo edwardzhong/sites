@@ -48,8 +48,8 @@
         v_normal = vec3(u_modelMatrix * a_normal);
         gl_Position = u_vpMatrix * u_modelMatrix * a_position;
     }
-    </script>
-    <script id="cfs" type="x-shader/x-fragment">
+</script>
+<script id="cfs" type="x-shader/x-fragment">
     precision highp float;
     varying vec3 v_position;
     varying vec3 v_normal;
@@ -62,18 +62,17 @@
         vec3 direction = reflect(eyeToSurfaceDir,normal);
         gl_FragColor = textureCube(u_texture, direction);
     }
-    </script>
-    <script type="x-shader/x-vertex" id="vs">
+</script>
+<script type="x-shader/x-vertex" id="vs">
     attribute vec4 a_position;
-    uniform mat4 u_modelMatrix;
     uniform mat4 u_vpMatrix;
     varying vec3 v_normal;
     
     void main() {
-        gl_Position = u_vpMatrix * u_modelMatrix * a_position;
+        gl_Position =  u_vpMatrix * a_position;
         //因为位置是以几何中心为原点的,可以用它们来作为法向量
         v_normal = normalize(a_position.xyz);
-    }    
+    }
     </script>
     <script type="x-shader/x-fragment" id="fs">
     precision highp float;
@@ -83,7 +82,7 @@
     void main() {
         gl_FragColor = textureCube(u_texture, normalize(v_normal));
     }    
-    </script>
+</script>
 <script>
 const canvas = document.getElementById("canvas"),
     gl = get3DContext(canvas, true);
@@ -185,16 +184,13 @@ const cProgram = createProgramInfo(gl, 'cvs', 'cfs');
 const cBuffer =  createBufferInfoFromArrays( gl, box );
 const cVao =  createVertexArrayInfo(gl, cProgram, cBuffer);
 
-const matrix = new Matrix4();
+const viewPosition = new Vector3([0,0,1.5]);
+const lookAt = [0, 0, 0];
 const vpMatrix = new Matrix4();
-const viewPosition = [0, 0, 0];//必须在原点，才能使纹理盒实现360度环绕，而看不出盒子的形状
-const lookTo = [0, 0.1, -1];//看向z为-1的背面
-
 const cameraMatrix = new Matrix4();
 const modelMatrix = new Matrix4();
-const cVpMatrix = new Matrix4();
-const cViewPosition = new Vector3([0,0,2]);
 
+modelMatrix.setScale(0.15,0.15,0.15);
 let viewPoint = null;
 
 // 设置背景颜色
@@ -202,10 +198,6 @@ gl.clearColor(0.0, 0.0, 0.0, 1.0);
 // 开启隐藏面消除
 gl.enable(gl.DEPTH_TEST);
 gl.viewport(0, 0, canvas.width, canvas.height);
-
-vpMatrix.setPerspective( 30, canvas.width / canvas.height, 0.1, 5 );
-vpMatrix.lookAt(...viewPosition, ...lookTo, 0, 1, 0);
-modelMatrix.setScale(0.2,0.2,0.2);
 
 createTexture(gl,{ target: gl.TEXTURE_CUBE_MAP, src:[
     '../img/sorbin_rt.jpg',
@@ -220,6 +212,15 @@ createTexture(gl,{ target: gl.TEXTURE_CUBE_MAP, src:[
 });
 
 function draw(){
+    cameraMatrix.rotate(0.2,0,1,0);
+    viewPoint = cameraMatrix.multiplyVector3(viewPosition);
+    vpMatrix.setPerspective( 30, canvas.width / canvas.height, 0.1, 5 );
+    vpMatrix.lookAt(...viewPoint.elements, ...lookAt, 0, 1, 0);
+
+    vpMatrix.elements[12] = 0;
+    vpMatrix.elements[13] = 0;
+    vpMatrix.elements[14] = 0;
+
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
     //天空盒
@@ -228,30 +229,23 @@ function draw(){
     gl.depthMask(false);
     gl.disable(gl.CULL_FACE);
 
-    matrix.rotate(0.1,0,1,0);
     setBuffersAndAttributes(gl, program, vao);
     setUniforms(program, {  
         u_texture:0,
-        u_vpMatrix: vpMatrix.elements,
-        u_modelMatrix: matrix.elements
+        u_vpMatrix: vpMatrix.elements
     });
     gl.drawArrays(gl.TRIANGLES, 0, vao.count);
 
     //立方体
     gl.useProgram(cProgram.program);
+    gl.depthMask(true);
     gl.enable(gl.CULL_FACE);
-
-    //上面天空盒旋转0.1度 对应 此处相机旋转0.1度
-    cameraMatrix.rotate(0.1,0,1,0);
-    viewPoint = cameraMatrix.multiplyVector3(cViewPosition);
-    cVpMatrix.setPerspective( 30, canvas.width / canvas.height, 0.1, 5 );
-    cVpMatrix.lookAt(...viewPoint.elements, 0, 0, 0, 0, 1, 0);
 
     modelMatrix.rotate(0.5,1,1,1);
     setBuffersAndAttributes(gl, cProgram, cVao);
     setUniforms(cProgram, {
         u_texture:0,
-        u_vpMatrix: cVpMatrix.elements,
+        u_vpMatrix: vpMatrix.elements,
         u_viewPosition: viewPoint.elements,
         u_modelMatrix: modelMatrix.elements
     });
