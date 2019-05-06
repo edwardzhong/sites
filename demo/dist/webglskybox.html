@@ -200,12 +200,12 @@ gl.enable(gl.DEPTH_TEST);
 gl.viewport(0, 0, canvas.width, canvas.height);
 
 createTexture(gl,{ target: gl.TEXTURE_CUBE_MAP, src:[
-    'sites/demo/img/sorbin_rt.jpg',
-    'sites/demo/img/sorbin_lf.jpg',
-    'sites/demo/img/sorbin_up.jpg',
-    'sites/demo/img/sorbin_dn.jpg',
-    'sites/demo/img/sorbin_bk.jpg',
-    'sites/demo/img/sorbin_ft.jpg',
+    '/sites/demo/img/sorbin_rt.jpg',
+    '/sites/demo/img/sorbin_lf.jpg',
+    '/sites/demo/img/sorbin_up.jpg',
+    '/sites/demo/img/sorbin_dn.jpg',
+    '/sites/demo/img/sorbin_bk.jpg',
+    '/sites/demo/img/sorbin_ft.jpg',
 ]}, function(){
     document.getElementById('loading').style.display='none';
     draw();
