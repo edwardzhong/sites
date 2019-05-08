@@ -8,9 +8,6 @@
 <link rel="stylesheet" href="../../css/fontello.css">
 <link rel="stylesheet" href="../css/style.css">
 
-<!--[if lt IE 9]>
-<script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
-<![endif]-->
 </head>
 <body>
 	<div class="content">
@@ -24,7 +21,24 @@
 		<a class="effect-list" href="../index.html">&larr;&nbsp;effect list</a>
 		
 <h2>点光源聚光灯阴影</h2>
+<h3>聚光灯位置和角度</h3>
 <p>拖动鼠标可旋转和缩放画面</p>
+<label for="x">x坐标</label>
+<input type="range" name="x" id="x" step="0.5" min="-5" max="5" value="0">
+<span id="xt">0</span>
+<br>
+<label for="y">y坐标</label>
+<input type="range" name="y" id="y" step="0.5" min="0" max="10" value="3">
+<span id="yt">3</span>
+<br>
+<label for="xan">x轴角度</label>
+<input type="range" name="xan" id="xan" step="1" min="0" max="45" value="0">
+<span id="xat">0</span>
+<br>
+<label for="yan">y轴角度</label>
+<input type="range" name="yan" id="yan" step="1" min="-45" max="45" value="0">
+<span id="yat">30</span>
+<br>
 <canvas id="canvas" width="600" height="450"></canvas>
  </div>
 		<footer class="footer">
@@ -38,9 +52,11 @@
 <script src="../../js/polygon.js"></script>
 <script type="x-shader/x-vertex" id="svs">
     attribute vec4 a_position; 
-    uniform mat4 u_mvpMatrix; 
+    uniform mat4 u_vpMatrix; 
+    uniform mat4 u_modelMatrix; 
+    
     void main() { 
-        gl_Position = u_mvpMatrix * a_position; 
+        gl_Position = u_vpMatrix * u_modelMatrix * a_position; 
     }
 </script>
 <script type="x-shader/x-fragment" id="sfs">
@@ -63,22 +79,20 @@
 </script>
 <script type="x-shader/x-vertex" id="vs">
     attribute vec4 a_position;
-    attribute vec4 a_color;
     attribute vec4 a_normal;
     uniform mat4 u_modelMatrix;//等比例变换,可以用模型矩阵代替逆转置矩阵
-    uniform mat4 u_mvpMatrix;//当前视点观测的模型视图投影矩阵
-    uniform mat4 u_mvpMatrixFromLight;//光源处观察的模型视图投影矩阵
+    uniform mat4 u_vpMatrix;//当前视点观测的模型视图投影矩阵
+    uniform mat4 u_vpMatrixFromLight;//光源处观察的模型视图投影矩阵
     uniform mat4 u_normalMatrix;
     varying vec4 v_positionFromLight;
-    varying vec3 v_position;
+    varying vec4 v_position;
     varying vec3 v_normal;
-    varying vec4 v_color;
+
     void main() {
-        gl_Position = u_mvpMatrix * a_position; // 当前视点观察到的坐标
-        v_positionFromLight = u_mvpMatrixFromLight * a_position;//光源处观察到的坐标,用于后续分解出z值
-        v_position = vec3(u_modelMatrix * a_position);//顶点在世界坐标系中的位置
-        v_normal = normalize(vec3(u_normalMatrix * a_normal));
-        v_color = a_color;
+        gl_Position = u_vpMatrix * u_modelMatrix * a_position; // 当前视点观察到的坐标
+        v_positionFromLight = u_vpMatrixFromLight * u_modelMatrix * a_position;//光源处观察到的坐标,用于后续分解出z值
+        v_position = u_modelMatrix * a_position;//顶点在世界坐标系中的位置
+        v_normal = vec3(u_normalMatrix * a_normal);
     }
 </script>
 <script type="x-shader/x-fragment" id="fs">
@@ -87,14 +101,17 @@
     #endif
     uniform vec3 u_lightColor;
     uniform vec3 u_lightPosition;
+    uniform vec3 u_lightDirection;//光源方向(聚光灯朝向)
     uniform vec3 u_ambientColor;
     uniform vec3 u_viewPosition;
+    uniform vec3 u_color;
     uniform sampler2D u_shadowMap;
+    const float shininess = 50.0;
+    const vec3 specularColor = vec3(1.0,1.0,1.0);
 
     varying vec4 v_positionFromLight;
-    varying vec3 v_position;
+    varying vec4 v_position;
     varying vec3 v_normal;
-    varying vec4 v_color;
 
     /**
      * 释出深度值z
@@ -104,15 +121,15 @@
         return dot(rgbaDepth, bitShift);
     }
     // pcf消除阴影边缘的锯齿
-    float pcf(float cosTheta,vec4 v_positionFromLight) {
+    float pcf(float theta,vec4 position) {
         float shadows = 0.0;
         float opacity = 0.4;// 基底阴影alpha值
         float texelSize = 1.0/2048.0;// 阴影像素尺寸,值越小阴影越逼真
         vec4 rgbaDepth;
         // 将xyz坐标从齐次坐标区间[-1,1]归一化为纹理使用的[0,1]，xy分量用于查找纹理颜色值rgba，z分量就是在光源坐标系下的深度值; 
-        vec3 shadowCoord = (v_positionFromLight.xyz/v_positionFromLight.w)/2.0 + 0.5;
+        vec3 shadowCoord = (position.xyz/position.w)/2.0 + 0.5;
         // 根据光线与表面的夹角计算偏移量,用于消除马赫带
-        float bias = 0.005 * tan(acos(cosTheta));
+        float bias = 0.005 * tan(acos(theta));
         bias = clamp(bias, 0.0015, 0.01);
 
         for(float y=-1.5; y <= 1.5; y += 1.0){
@@ -128,212 +145,223 @@
         // 对法线归一化，因为其内插之后长度不一定是1
         vec3 normal = normalize(v_normal);
         // 点光源反向 光源位置-顶点位置
-        vec3 lightDirection = normalize(u_lightPosition - v_position.xyz);
+        vec3 surfaceToLightDirection = normalize(u_lightPosition - v_position.xyz);
         // 光线方向和法向量的夹角，它们的点积即可求出夹角余弦值(范围0-90度)
-        float cosTheta = max(dot(lightDirection, normal), 0.0);
-        
+        float cosTheta = max(dot(surfaceToLightDirection, normal), 0.0);
+
         /*
         * 聚光灯
         */
-        //默认照射方向是坐标原点(0,0,0),可通过指定照射角度(degX,degY,degZ)或者 照射坐标(x,y,z) 设置朝向
-        float limit = cos(radians(25.0)) * cosTheta;//照射范围角度 * 背面消除
-        //outerLimit和innerLimit之间的光线模糊效果
+        float limit = cos(radians(25.0));//照射范围角度
         float outerLimit = cos(radians(25.0));//模糊外径角度
         float innerLimit = cos(radians(20.0));//模糊内径角度
-        vec3 lightPosition = normalize(u_lightPosition);
-        float dotFromDirection = dot(lightDirection,lightPosition);
-        float blurRange = smoothstep(outerLimit, innerLimit, dotFromDirection);//模糊范围
+        float dotFromDirection = dot(surfaceToLightDirection, u_lightDirection);//光源方向与表面光线方向的夹角
+        float inlightBloom = smoothstep(outerLimit, innerLimit, dotFromDirection);//聚光灯范围 + 边缘模糊
+        // 聚光灯范围
+        float inLight = step(limit, dotFromDirection);
 
-        float shininess = 50.0;
-        vec3 specularColor = vec3(1.0,1.0,1.0);//镜面反射光颜色
-        float specularWeighting = 0.0;
-        vec3 diffuse = vec3(0.0,0.0,0.0);
-        float visibility = 1.0;
-
-        //计算光照范围内效果
-        if (dotFromDirection >= limit) {
-            // 漫反射
-            diffuse = u_lightColor * v_color.rgb * blurRange * cosTheta;
-            // 高光
-            vec3 viewDirection = normalize(u_viewPosition-v_position.xyz);// 反射方向
-            vec3 halfwayDir = normalize(lightDirection + viewDirection);
-            specularWeighting = pow(max(dot(normal, halfwayDir), 0.0), shininess);
-            //阴影
-            visibility = pcf(cosTheta,v_positionFromLight);
-        }
+        // 环境光
+        vec3 ambient = u_ambientColor * u_color;
+        // 漫反射
+        vec3 diffuse = u_lightColor * u_color * cosTheta * inlightBloom;
         
-        // 环境光亮度
-        vec3 ambient = u_ambientColor * v_color.rgb;
-        // 镜面高光亮度
-        vec3 specular = specularColor.rgb * specularWeighting * blurRange;
-        gl_FragColor = vec4((diffuse + ambient + specular) * visibility, v_color.a);        
+        // 高光
+        vec3 viewDirection = normalize(u_viewPosition - v_position.xyz);// 反射方向
+        vec3 halfwayDir = normalize(surfaceToLightDirection + viewDirection);
+        float specularIntensity = pow(max(dot(normal, halfwayDir), 0.0), shininess);
+        vec3 specular = specularColor * specularIntensity * inlightBloom;
+
+        //阴影(聚光灯范围外无阴影)
+        //float shadow = dotFromDirection > limit ? pcf(cosTheta,v_positionFromLight) : 1.0;
+        float shadow = min(inLight, pcf(cosTheta,v_positionFromLight));
+
+        gl_FragColor = vec4(ambient + (diffuse + specular) * shadow , 1.0);        
     }
 </script>
 <script>
 var canvas = document.getElementById('canvas'),
-    gl = get3DContext(canvas),
-    OFFSCREEN_WIDTH = 2048,
-    OFFSCREEN_HEIGHT = 2048,
-    viewAngleX=15,
+    viewAngleX=0,
     viewAngleY=15,
     cViewAngleX=0,
     cViewAngleY=0,
     viewLEN=12,
     LENPERCENT = 1,
-    LIGHT_POS=[3,2.5,6],//光源位置
+    LIGHT_POS=[0,3,6],//光源位置
+    LIGHT_DIR=[0,3,6],
     CENTER = { x: canvas.width / 2, y: canvas.height / 2 },
-    START = {};
+    START = {},
+    FBO_WIDTH = 2048,
+    FBO_HEIGHT = 2048;
 
-function main() {
-    if (!gl) {
-        console.log('Failed to get the rendering context for WebGL');
-        return;
-    }
+var xEle = document.getElementById('x'),
+    yEle = document.getElementById('y'),
+    xaEle = document.getElementById('xan'),
+    yaEle = document.getElementById('yan'),
+    xt = document.getElementById('xt'),
+    yt = document.getElementById('yt'),
+    xat = document.getElementById('xat'),
+    yat = document.getElementById('yat'),
+    xdeg = 0,
+    ydeg = 0;
 
-    // 初始化阴影着色器,创建对应program
-    var shadowProgram = createProgramInfo(gl,['svs','sfs']);
+xEle.oninput = function(e){
+    xt.innerText = LIGHT_POS[0] = Number(this.value);
+}   
 
-    // 初始化普通着色器,创建对应program
-    var normalProgram = createProgramInfo(gl,['vs','fs']);
+yEle.oninput = function(e){
+    yt.innerText = LIGHT_POS[1] = Number(this.value);
+}
 
-    // 获取对应图形的缓冲区对象
-    var planeBuffers = createBufferInfoFromArrays(gl,Plane());
-    var cubeBuffers = createBufferInfoFromArrays(gl,Cube([0.8,0.2,0.3,1]));
-    // var cubeBuffers = createBufferInfoFromArrays(gl,Cube([1,0,0,1]));
+xaEle.oninput = function(e){
+    xat.innerText = xdeg = Number(this.value);
+    caculateDir();
+}
 
-    // 初始化帧缓冲区对象 (FBO)  
-    var fbo = createFramebuffer(gl,{ w: OFFSCREEN_WIDTH, h: OFFSCREEN_HEIGHT });
-    if (!fbo) {
-        console.log('Failed to initialize frame buffer object');
-        return;
-    }
+yaEle.oninput = function(e){
+    yat.innerText = ydeg = Number(this.value);
+    caculateDir();
+}
 
-    // 设置背景设并开启隐藏面消除功能 
-    gl.clearColor(0, 0, 0, 1);
-    gl.enable(gl.DEPTH_TEST);
-    // gl.polygonOffset(1.0, 1.0)
-    // gl.enable(gl.CULL_FACE);
-    // gl.cullFace(gl.BACK);
+caculateDir();
+
+//计算光源方向
+function caculateDir(){
+    var mat = new Matrix4();
+    mat.setRotate(-xdeg,1,0,0);
+    mat.rotate(-ydeg,0,1,0);
+    LIGHT_DIR = mat.multiplyVector3(new Vector3(LIGHT_POS)).normalize().elements;
+    console.log(LIGHT_DIR);
+}
+
+var gl = get3DContext(canvas,true);
+// 初始化阴影着色器,创建对应program
+var shadowProgram = createProgramInfo(gl,['svs','sfs']);
+// 初始化普通着色器,创建对应program
+var normalProgram = createProgramInfo(gl,['vs','fs']);
+
+// 获取对应图形的缓冲区对象
+var planeBuffer = createBufferInfoFromArrays(gl,Plane(5));
+var cubeBuffer = createBufferInfoFromArrays(gl,Cube());
+// 帧缓冲区对象 (FBO)  
+var fbo = createFramebuffer(gl,{ w: FBO_WIDTH, h: FBO_HEIGHT });
+
+var vpMatrixFromLight = new Matrix4(); // 光源处的视图投影矩阵
+var vpMatrix = new Matrix4(); // 当前视点的视图投影矩阵
+var modelMatrix = new Matrix4();// 模型矩阵
+var normalMatrix = new Matrix4();// 向量矩阵
+
+gl.clearColor(0, 0, 0, 1);
+gl.enable(gl.DEPTH_TEST);
+gl.enable(gl.CULL_FACE);
+
+var angle = 29,ANGLE_STEP = 40, last = Date.now();
+
+(function animate(){
+    var now = new Date(), elapsed = now - last;
+
+    last = now;
+    angle += ANGLE_STEP * elapsed / 1000;
+    angle %= 360;
+
+    var angleX=(viewAngleX+cViewAngleX)%360;
+        angleY=viewAngleY+cViewAngleY,
+        len=viewLEN*LENPERCENT;
+
+    angleY = angleY>90?90:angleY<10?10:angleY;
+    len = len >30 ? 30 : len < 6 ? 6 : len;
+
+    var eyeY=len*Math.sin(angleY*Math.PI/180),
+        c=len*Math.cos(angleY*Math.PI/180),
+        eyeX=c*Math.sin(angleX*Math.PI/180),
+        eyeZ=c*Math.cos(angleX*Math.PI/180);
+
+    vpMatrixFromLight.setPerspective(90, FBO_WIDTH / FBO_HEIGHT, 1, 100);
+    vpMatrixFromLight.lookAt(...LIGHT_POS, 0, 0, 0, 0, 1, 0);
+
+    vpMatrix.setPerspective(35, canvas.width / canvas.height, 1, 100);
+    vpMatrix.lookAt(eyeX,eyeY,eyeZ, 0, 0, 0, 0, 1, 0);
+    modelMatrix.rotate(0.5, 0, 1, 0);
+    /*
+    * 帧缓存
+    */ 
+    gl.bindFramebuffer(gl.FRAMEBUFFER, fbo); // 切换绘制场景为帧缓冲区  
+    gl.viewport(0, 0, FBO_WIDTH, FBO_HEIGHT); // 设置帧绘图区域
+    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT); // clear FBO    
+    gl.useProgram(shadowProgram.program);
+    // 绘制立方体
+    drawCube(shadowProgram);
+    // 绘制平面
+    drawPlane(shadowProgram);
     
-    var viewProjMatrixFromLight = new Matrix4(); // 光源处观察的视图投影矩阵(阴影着色器)
-    viewProjMatrixFromLight.setPerspective(90, OFFSCREEN_WIDTH / OFFSCREEN_HEIGHT, 1.0, 100.0);
-    viewProjMatrixFromLight.lookAt(...LIGHT_POS, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0);
+    /*
+    * 切换为正常的缓冲区 
+    */
+    gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+    gl.viewport(0, 0, canvas.width, canvas.height);//设置绘图区域
+    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);// clear color and depth
+    gl.useProgram(normalProgram.program);
+    setUniforms(normalProgram,{
+        u_shadowMap: 0, // 传递0号纹理:gl.TEXTURE0
+        u_lightColor: [1,1,1],// 光照颜色
+        u_lightPosition: LIGHT_POS, // 光线方向(世界坐标系下)
+        u_lightDirection: LIGHT_DIR,
+        u_ambientColor:[0.3,0.3,0.3], // 环境光颜色
+        u_viewPosition:[eyeX,eyeY,eyeZ]
+    });
+    // 绘制立方体        
+    drawCube(normalProgram);
+    // 绘制平面
+    drawPlane(normalProgram);
+    
+    requestAnimationFrame(animate);
+}());
 
-    var viewProjMatrix = new Matrix4(); // 当前视点观测的视图投影矩阵(正常着色器)
-    var mvpMatrixFromLight_s = new Matrix4(); // 从光源处观察圆球的mvp矩阵(正常着色器)
-    var mvpMatrixFromLight_c = new Matrix4(); // 从光源处观察立方体的mvp矩阵(正常着色器)
-    var mvpMatrixFromLight_p = new Matrix4(); // 从光源处观察平面的mvp矩阵(正常着色器)
-    var mvpMatrix = new Matrix4();// 通用mvp矩阵
-    var modelMatrix = new Matrix4();// 模型矩阵(正常着色器)
-    var normalMatrix = new Matrix4();// 向量矩阵
-
-    var angle=29,ANGLE_STEP = 40, last = Date.now();
-    (function animate(){
-        var now = new Date(),
-            elapsed = now - last;
-
-        last = now;
-        angle += ANGLE_STEP * elapsed / 1000;
-        angle %= 360;
-
-        var angleX=(viewAngleX+cViewAngleX)%360;
-            angleY=viewAngleY+cViewAngleY,
-            len=viewLEN*LENPERCENT;
-        angleY=angleY>90?90:angleY<10?10:angleY;
-        len=len>30?30:len<6?6:len;
-
-        var eyeY=len*Math.sin(angleY*Math.PI/180),
-            c=len*Math.cos(angleY*Math.PI/180),
-            eyeX=c*Math.sin(angleX*Math.PI/180),
-            eyeZ=c*Math.cos(angleX*Math.PI/180);
-
-        viewProjMatrix.setPerspective(35, canvas.width / canvas.height, 1.0, 100.0);
-        viewProjMatrix.lookAt(eyeX,eyeY,eyeZ, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0);
-        gl.bindFramebuffer(gl.FRAMEBUFFER, fbo); // 切换绘制场景为帧缓冲区  
-        gl.viewport(0, 0, OFFSCREEN_WIDTH, OFFSCREEN_HEIGHT); // 设置帧绘图区域
-        gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT); // Clear FBO    
-        /*
-         * 阴影着色器
-         */ 
-        gl.useProgram(shadowProgram.program);
-        
-        // 绘制立方体
-        drawCube(shadowProgram,viewProjMatrixFromLight);
-                
-        // 绘制平面
-        drawPlane(shadowProgram,viewProjMatrixFromLight);
-        
-        // 将帧缓冲区切换为正常的缓冲区
-        gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-        gl.viewport(0, 0, canvas.width, canvas.height);//设置绘图区域
-         // 清屏和深度缓冲
-        gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-        
-        /*
-         * 正常的着色器
-         */ 
-        gl.useProgram(normalProgram.program);
-
-        setUniforms(normalProgram,{
-            u_shadowMap: 0, // 传递0号纹理:gl.TEXTURE0
-            u_lightColor: [1,1,1],// 光照颜色
-            u_lightPosition: LIGHT_POS, // 光线方向(世界坐标系下)
-            u_ambientColor:[0.2,0.2,0.2], // 环境光颜色
-            u_viewPosition:[eyeX,eyeY,eyeZ]
+function drawCube(program){
+    modelMatrix.setTranslate( 0, 2, 2);
+    modelMatrix.rotate(angle, 0, 1, 0);
+    normalMatrix.setInverseOf(modelMatrix);
+    normalMatrix.transpose();
+    if(program == shadowProgram){
+        setUniforms(program,{ 
+            u_vpMatrix: vpMatrixFromLight.elements,
+            u_modelMatrix: modelMatrix.elements
         });
-        
-        // 绘制立方体        
-        drawCube(normalProgram,viewProjMatrix);
-        // 绘制平面
-        drawPlane(normalProgram,viewProjMatrix);
-        
-        requestAnimationFrame(animate);
-    }());
-
-    function drawCube(program,vpMatrix){
-        modelMatrix.setTranslate( 1, 2, 2);
-        modelMatrix.rotate(angle, 0, 1, 0);
-        mvpMatrix.set(vpMatrix);
-        mvpMatrix.multiply(modelMatrix);
-        normalMatrix.setInverseOf(modelMatrix);
-        normalMatrix.transpose();
-
-        if(program==shadowProgram){
-            mvpMatrixFromLight_c.set(mvpMatrix);
-        } else {
-            setUniforms(program,{
-                u_mvpMatrixFromLight: mvpMatrixFromLight_c.elements,
-                u_modelMatrix: modelMatrix.elements,
-                u_normalMatrix: normalMatrix.elements
-            });
-        }
-        draw(gl, program, cubeBuffers,mvpMatrix);
+    } else {
+        setUniforms(program,{
+            u_color: [0.9,0.3,0.3],
+            u_vpMatrix: vpMatrix.elements,
+            u_vpMatrixFromLight: vpMatrixFromLight.elements,
+            u_modelMatrix: modelMatrix.elements,
+            u_normalMatrix: normalMatrix.elements
+        });
     }
-
-    function drawPlane(program,vpMatrix){
-        modelMatrix.setRotate(0, 1, 0, 0);
-        modelMatrix.scale(5,5,5);
-        mvpMatrix.set(vpMatrix);
-        mvpMatrix.multiply(modelMatrix);
-        if(program==shadowProgram){
-            mvpMatrixFromLight_p.set(mvpMatrix);
-        } else {
-            setUniforms(program,{
-                u_mvpMatrixFromLight: mvpMatrixFromLight_p.elements,
-                u_modelMatrix: modelMatrix.elements
-            });
-        }
-        draw(gl, program, planeBuffers,mvpMatrix);
-    }
+    setBuffersAndAttributes(gl,program,cubeBuffer);
+    drawBufferInfo(gl, cubeBuffer);
 }
 
+function drawPlane(program){
+    modelMatrix.setIdentity();
+    normalMatrix.setInverseOf(modelMatrix);
+    normalMatrix.transpose();
 
-function draw(gl, program, buffer,mvpMatrix) {
-    // 输出attribute对应的数据缓冲
-    setBuffersAndAttributes(gl,program,buffer);
-    setUniforms(program,{u_mvpMatrix: mvpMatrix.elements});
-    gl.drawElements(gl.TRIANGLES, buffer.count, buffer.indexType, 0);
+    if(program == shadowProgram){
+        setUniforms(program,{ 
+            u_vpMatrix: vpMatrixFromLight.elements,
+            u_modelMatrix: modelMatrix.elements 
+        });
+    } else {
+        setUniforms(program,{
+            u_color: [0.6,0.6,0.6],
+            u_vpMatrix: vpMatrix.elements,
+            u_vpMatrixFromLight: vpMatrixFromLight.elements,
+            u_modelMatrix: modelMatrix.elements,
+            u_normalMatrix: normalMatrix.elements
+        });
+    }
+    setBuffersAndAttributes(gl,program,planeBuffer);
+    drawBufferInfo(gl, planeBuffer);
 }
+
 
 canvas.addEventListener('mousedown', function(e) {
     START = windowToCanvas(canvas, e.clientX, e.clientY);
@@ -366,7 +394,6 @@ function mouseUp(e) {
     canvas.removeEventListener('mousemove', mouseMove, false);
     canvas.removeEventListener('mouseout', mouseUp, false);
 }
-main();
 </script>
 
 </body>
