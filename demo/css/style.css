@@ -1,13 +1,10 @@
-
-html,body{
-  // font-family:"Droid Sans","Helvetica Neue", Helvetica, "Hiragino Sans GB", "Microsoft YaHei", Arial, sans-serif;
+html{
   font-family: -apple-system, BlinkMacSystemFont, "PingFang SC","Helvetica Neue",STHeiti,"Microsoft Yahei",Tahoma,Simsun,sans-serif;
   font-size: 14px;
   color: #555;
   height: 100%;
-  margin: 0;
-  padding: 0;
 }
+body{height: 100%;margin: 0;}
 p{margin: 0;}
 a {
   color: #444;
@@ -21,14 +18,12 @@ ul{
 .effect-list{
   display: block;
   font-size: 18px;
-  // color:hsl(174, 100%, 27%);
   color: #008a7c;;
   line-height: 2;
   text-align: left;
 }
 .effect-list:hover{
   color: #00665c;
-  // color:hsl(174, 100%, 20%);
 }
 .content{
   position: relative;
@@ -36,7 +31,6 @@ ul{
   min-width: 320px;
   overflow: hidden;
   background-color: #dee5ed;
-  // background-color: hsl(213, 30%, 90%)
 }
 
 .github{
@@ -48,7 +42,6 @@ ul{
 .header{
   padding: 1px;
   background-color: #008a7c;
-  // background-color: hsl(174, 100%, 27%);
   color: #fff;
   text-align: center;
   letter-spacing: 2px;
@@ -89,7 +82,6 @@ ul{
 }
 .post-list a:hover{
   color: #008a7c;
-  // color:hsl(174, 100%, 27%);
   padding-left: 1em;
 }
 
