@@ -1,10 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0"><title></title><link rel="stylesheet" href="../../css/pure-min.css"><link rel="stylesheet" href="../../css/fontello.css"><link rel="stylesheet" href="../css/style.css"><style>.grid{
-    max-width: 100%;
-    max-height: 100%;
-}
-canvas{
-    background:rgba(250,250,250,1);
-}</style><script src="../../js/jquery-2.2.3.min.js"></script></head><body><div class="content"><a class="github" href="https://github.com/edwardzhong"><img src="../img/github.png"></a><header class="header"><h1><a href="../index.html">Jeff Zhong's Demo</a></h1></header><div class="main grid"><a class="effect-list" href="../index.html">&larr;&nbsp;effect list</a><canvas id="canvas" width="600" height="400"></canvas></div><footer class="footer"><p> Copyright &copy; 2017 <a href="https://github.com/edwardzhong">Jeff Zhong</a></p></footer></div><script>var canvas = document.getElementById("canvas"),
+var canvas = document.getElementById("canvas"),
 	ctx = canvas.getContext("2d"),
 	W = document.documentElement.clientWidth || document.body.clientWidth,
 	H = document.documentElement.clientHeight || document.body.clientHeight,
@@ -83,4 +77,3 @@ canvas.onmousemove = function(e) {
 	points.push(new Point(e.clientX, e.clientY, 0, 0));
 };
 animate();
-</script></body></html>

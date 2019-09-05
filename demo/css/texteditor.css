@@ -1,0 +1,38 @@
+#content{
+    position: relative;
+    border: 1px solid #eee;
+    width: 600px;
+    height: 400px;
+    margin: 0 auto;
+    overflow: hidden;
+    user-select:none;
+}
+#content textarea{
+    box-sizing: border-box;
+    position: absolute;
+    font-weight: bold;
+    font-size: 20px;
+    border:1px solid transparent;
+    resize: none;
+    outline: none;
+}
+#content textarea:hover,#content textarea:focus{
+    border-color: #efefef;
+    border-radius: 4px;
+    resize:both;
+}
+#menu{
+    box-sizing: border-box;
+    display: none;
+    position: absolute;
+    left: 100px;
+    top: 100px;
+    z-index: 99;
+    border: 1px solid #ddd;
+    padding:10px;
+    background-color: #fff;
+}
+#menu p{
+    margin: 0;
+    color: hsl(200, 100%, 50%);
+}

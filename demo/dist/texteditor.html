@@ -1,0 +1,79 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0"><title></title><link rel="stylesheet" href="../../css/pure-min.css"><link rel="stylesheet" href="../../css/fontello.css"><link rel="stylesheet" href="../css/style.css"><style>#content{
+    position: relative;
+    border: 1px solid #eee;
+    width: 600px;
+    height: 400px;
+    margin: 0 auto;
+    overflow: hidden;
+    user-select:none;
+}
+#content textarea{
+    box-sizing: border-box;
+    position: absolute;
+    font-weight: bold;
+    font-size: 20px;
+    border:1px solid transparent;
+    resize: none;
+    outline: none;
+}
+#content textarea:hover,#content textarea:focus{
+    border-color: #efefef;
+    border-radius: 4px;
+    resize:both;
+}
+#menu{
+    box-sizing: border-box;
+    display: none;
+    position: absolute;
+    left: 100px;
+    top: 100px;
+    z-index: 99;
+    border: 1px solid #ddd;
+    padding:10px;
+    background-color: #fff;
+}
+#menu p{
+    margin: 0;
+    color: hsl(200, 100%, 50%);
+}</style><script src="../../js/jquery-2.2.3.min.js"></script></head><body><div class="content"><a class="github" href="https://github.com/edwardzhong"><img src="../img/github.png"></a><header class="header"><h1><a href="../index.html">Jeff Zhong's Demo</a></h1></header><div class="main grid"><a class="effect-list" href="../index.html">&larr;&nbsp;effect list</a><h2>文字编辑</h2><p>双击添加文字框，可拖动位置和拖拽大小</p><div id="content"><canvas id="canvas" width="600" height="400"></canvas><div id="menu"><p>右键菜单</p></div></div></div><footer class="footer"><p> Copyright &copy; 2017 <a href="https://github.com/edwardzhong">Jeff Zhong</a></p></footer></div><script>const content = document.getElementById('content');
+const menu = document.getElementById('menu');
+const pos = content.getBoundingClientRect();
+
+content.ondblclick = function(e) {
+    const txt = document.createElement('textarea');
+    txt.setAttribute('autofocus','true');
+    content.appendChild(txt);
+    txt.style.cssText = `left:${e.clientX - pos.left -10}px;top:${e.clientY - pos.top -10}px;`;
+    setTimeout(() => {
+        txt.focus();
+    }, 500);
+};
+content.onmousedown=function(e){
+    const target = e.target;
+    if(target.nodeName == 'TEXTAREA'){
+        const x = e.clientX- pos.left - target.offsetLeft;
+        const y = e.clientY- pos.top - target.offsetTop;
+        if(target.offsetWidth - x < 10 && target.offsetHeight - y < 10) return;
+        content.onmousemove=function(e){
+            target.style.left = e.clientX- pos.left - x + 'px';
+            target.style.top = e.clientY- pos.top - y + 'px';
+        }
+        content.onmouseup = function(){
+            content.onmouseup = null;
+            content.onmousemove = null;
+        }
+    }
+}
+content.oncontextmenu=function(e){
+    const target = e.target;
+    if(target.nodeName == 'TEXTAREA'){
+        menu.style.display ="block";
+        menu.style.left = e.clientX- pos.left - 10 + 'px';
+        menu.style.top = e.clientY- pos.top - 10 + 'px';
+    }
+    return false;
+}
+
+menu.onmouseleave=function(e){
+    this.style.display='';
+}</script></body></html>
