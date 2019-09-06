@@ -1,0 +1,13 @@
+canvas{
+    float: left;
+}
+.tool{
+    text-align: left;
+    margin-left: 620px;
+}
+p{
+    margin-bottom: 20px;
+}
+label{
+    padding-right: 5px;
+}
