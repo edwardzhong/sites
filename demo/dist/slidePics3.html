@@ -1,252 +1,198 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
-<title>css3图片轮播</title>
-<link rel="stylesheet" href="../../css/pure-min.css">
-<link rel="stylesheet" href="../../css/fontello.css">
-<link rel="stylesheet" href="../css/style.css">
-
-<style>
-	.wrap{
-		width: 880px;
-		margin: 20px auto;
-		overflow: hidden;
-	}
-	.btn{
-		box-sizing: border-box;
-		width: 30px;
-		height: 30px;
-		border-radius: 50%;
-		margin: 120px 5px 0;
-		font-size: 26px;
-		font-weight: bold;
-		text-align: center;
-		line-height: 1;
-		background-color: #efefef;
-		box-shadow: 0 0 2px 2px hsla(0, 0%, 80%, .9);
-		color: #aaa;
-		cursor: pointer;
-		z-index: 5;
-	}
-	.btn:hover{
-		background-color: #bbb;
-		color:#fff;
-		box-shadow: 0 0 2px 2px hsla(0, 0%, 60%, .9);
-	}
-	.fl{float: left;}
-	.fr{float: right;}
-	.con{
-		position: relative;
-		width: 840px;
-		margin-left: 20px;
-		height: 320px;
-		perspective: 100px;
-		/* perspective-origin: 50% 20%;/*透视所在点*/ */
-	}
-	.con .img{
-		position: absolute;
-		box-sizing: border-box;
-		background-color: #fff;
-		transform: translate3d(230px, 0, -50px);
-		transition: transform 0.4s;
-	}
-	.con .source{
-		width: 320px;
-		height: 240px;
-		cursor: pointer;
-		padding: 6px;
-		background-color: #fff;
-		box-shadow: 0 0 10px 3px hsla(0, 0%, 80%,1);
-	}
-	.con .ref{
-		position: relative;
-		margin-top: 2px;
-		width: 320px;
-		height: 240px;
-		padding: 6px;
-		transform: scale(1, -1);
-	}
-	.con .ref:after{
-		content: '';
-		position: absolute;
-		width: 100%;
-		height: 250px;
-		top: 0;
-		left: 0;
-		background-image: linear-gradient(to top,hsla(0, 0%, 100%, .6),hsla(0, 0%, 100%, 1) 50%);
-	}
-	.con img{
-		width: 100%;
-		height: 100%;
-	}
-</style>
-
-</head>
-<body>
-	<div class="content">
-		<a class="github" href="https://github.com/edwardzhong">
-			<img src="../img/github.png" alt="">
-		</a>
-		<header class="header">
-			<h1><a href="../index.html">Jeff Zhong's Demo</a></h1>
-		</header>
-		<div class="main grid">
-		<a class="effect-list" href="../index.html">&larr;&nbsp;effect list</a>
-		
-<h2>css3图片轮播</h2>
-<div class="wrap">
-	<div id="leftBtn" class="btn fl">&lt;</div>
-	<div id="rightBtn" class="btn fr">&gt;</div>
-	<div class="con">
-		<div class="img">
-			<div class="source"><img src="http://upload-images.jianshu.io/upload_images/127924-dec37275411437de.jpg" alt="" /></div>
-			<div class="ref"><img src="http://upload-images.jianshu.io/upload_images/127924-dec37275411437de.jpg" alt="" /></div>
-		</div>
-		<div class="img">
-			<div class="source"><img src="http://upload-images.jianshu.io/upload_images/127924-84999ce72b31c3b5.jpg" alt="" /></div>
-			<div class="ref"><img src="http://upload-images.jianshu.io/upload_images/127924-84999ce72b31c3b5.jpg" alt="" /></div>
-		</div>
-		<div class="img">
-			<div class="source"><img src="http://upload-images.jianshu.io/upload_images/127924-b06e44e6a17caf43.jpg" alt="" /></div>
-			<div class="ref"><img src="http://upload-images.jianshu.io/upload_images/127924-b06e44e6a17caf43.jpg" alt="" /></div>
-		</div>
-		<div class="img">
-			<div class="source"><img src="http://upload-images.jianshu.io/upload_images/127924-8403145c3c922546.jpg" alt="" /></div>
-			<div class="ref"><img src="http://upload-images.jianshu.io/upload_images/127924-8403145c3c922546.jpg" alt="" /></div>
-		</div>
-		<div class="img">
-			<div class="source"><img src="http://upload-images.jianshu.io/upload_images/127924-4ef33634665463af.jpg" alt="" /></div>
-			<div class="ref"><img src="http://upload-images.jianshu.io/upload_images/127924-4ef33634665463af.jpg" alt="" /></div>
-		</div>
-		<div class="img">
-			<div class="source"><img src="http://upload-images.jianshu.io/upload_images/127924-0999617a887bb6a3.jpg" alt="" /></div>
-			<div class="ref"><img src="http://upload-images.jianshu.io/upload_images/127924-0999617a887bb6a3.jpg" alt="" /></div>
-		</div>
-		<div class="img">
-			<div class="source"><img src="http://upload-images.jianshu.io/upload_images/127924-b48e22b6aef713ae.jpg" alt="" /></div>
-			<div class="ref"><img src="http://upload-images.jianshu.io/upload_images/127924-b48e22b6aef713ae.jpg" alt="" /></div>
-		</div>
-		<div class="img">
-			<div class="source"><img src="http://upload-images.jianshu.io/upload_images/127924-6e5e50300c4d219a.jpg" alt="" /></div>
-			<div class="ref"><img src="http://upload-images.jianshu.io/upload_images/127924-6e5e50300c4d219a.jpg" alt="" /></div>
-		</div>
-	</div>
-</div>
- </div>
-		<footer class="footer">
-			<p>Copyright &copy; 2017 <a href="https://github.com/edwardzhong">Jeff Zhong</a></p>
-		</footer>
-	</div>
-
-<script type="text/javascript">
-	var lbtn = document.getElementById('leftBtn'),
-		rbtn = document.getElementById('rightBtn'),
-		con = document.querySelector('.con');
-	//轮播使用到的5张图片
-	var configs=[
-		{i:2,css:'z-index:3;transform: translate3d(260px, 0, -30px)'},
-		{i:1,css:'z-index:2;transform-origin: left;transform: translate3d(-20px, 0, -60px) rotateY(5deg)'},
-		{i:3,css:'z-index:2;transform-origin: right;transform: translate3d(540px, 0, -60px) rotateY(-5deg)'},
-		{i:0,css:'z-index:1;transform-origin: left;transform: translate3d(-220px, 0, -70px) rotateY(5deg)'},
-		{i:4,css:'z-index:1;transform-origin: right;transform: translate3d(740px, 0, -70px) rotateY(-5deg)'}
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0"><title>css3图片轮播</title><link rel="stylesheet" href="../css/main.css"><link rel="stylesheet" href="../css/fontello.css"><link rel="stylesheet" href="../css/style.css"><style>.wrap{
+    width: 880px;
+    margin: 20px auto;
+    overflow: hidden;
+}
+.btn{
+    box-sizing: border-box;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    margin: 120px 5px 0;
+    font-size: 26px;
+    font-weight: bold;
+    text-align: center;
+    line-height: 1;
+    background-color: #efefef;
+    box-shadow: 0 0 2px 2px hsla(0, 0%, 80%, .9);
+    color: #aaa;
+    cursor: pointer;
+    z-index: 5;
+}
+.btn:hover{
+    background-color: #bbb;
+    color:#fff;
+    box-shadow: 0 0 2px 2px hsla(0, 0%, 60%, .9);
+}
+.fl{float: left;}
+.fr{float: right;}
+.con{
+    position: relative;
+    width: 840px;
+    margin-left: 20px;
+    height: 320px;
+    perspective: 100px;
+    /* perspective-origin: 50% 20%;/*透视所在点*/ */
+}
+.con .img{
+    position: absolute;
+    box-sizing: border-box;
+    background-color: #fff;
+    transform: translate3d(230px, 0, -50px);
+    transition: transform 0.4s;
+}
+.con .source{
+    width: 320px;
+    height: 240px;
+    cursor: pointer;
+    padding: 6px;
+    background-color: #fff;
+    box-shadow: 0 0 10px 3px hsla(0, 0%, 80%,1);
+}
+.con .ref{
+    position: relative;
+    margin-top: 2px;
+    width: 320px;
+    height: 240px;
+    padding: 6px;
+    transform: scale(1, -1);
+}
+.con .ref:after{
+    content: '';
+    position: absolute;
+    width: 100%;
+    height: 250px;
+    top: 0;
+    left: 0;
+    background-image: linear-gradient(to top,hsla(0, 0%, 100%, .6),hsla(0, 0%, 100%, 1) 50%);
+}
+.con img{
+    width: 100%;
+    height: 100%;
+}</style></head><body><div class="content"><a class="github" href="https://github.com/edwardzhong"><img src="../img/github.png"></a><header class="header"><h1><a href="../index.html">Jeff Zhong's Demo</a></h1></header><div class="main grid"><a class="effect-list" href="../index.html">&larr;&nbsp;effect list</a><h2>css3图片轮播</h2><div class="wrap"><div class="btn fl" id="leftBtn">&lt;</div><div class="btn fr" id="rightBtn">&gt;</div><div class="con"><div class="img"><div class="source"><img src="http://upload-images.jianshu.io/upload_images/127924-dec37275411437de.jpg"></div><div class="ref"><img src="http://upload-images.jianshu.io/upload_images/127924-dec37275411437de.jpg"></div></div><div class="img"><div class="source"><img src="http://upload-images.jianshu.io/upload_images/127924-84999ce72b31c3b5.jpg"></div><div class="ref"><img src="http://upload-images.jianshu.io/upload_images/127924-84999ce72b31c3b5.jpg"></div></div><div class="img"><div class="source"><img src="http://upload-images.jianshu.io/upload_images/127924-b06e44e6a17caf43.jpg"></div><div class="ref"><img src="http://upload-images.jianshu.io/upload_images/127924-b06e44e6a17caf43.jpg"></div></div><div class="img"><div class="source"><img src="http://upload-images.jianshu.io/upload_images/127924-8403145c3c922546.jpg"></div><div class="ref"><img src="http://upload-images.jianshu.io/upload_images/127924-8403145c3c922546.jpg"></div></div><div class="img"><div class="source"><img src="http://upload-images.jianshu.io/upload_images/127924-4ef33634665463af.jpg"></div><div class="ref"><img src="http://upload-images.jianshu.io/upload_images/127924-4ef33634665463af.jpg"></div></div><div class="img"><div class="source"><img src="http://upload-images.jianshu.io/upload_images/127924-0999617a887bb6a3.jpg"></div><div class="ref"><img src="http://upload-images.jianshu.io/upload_images/127924-0999617a887bb6a3.jpg"></div></div><div class="img"><div class="source"><img src="http://upload-images.jianshu.io/upload_images/127924-b48e22b6aef713ae.jpg"></div><div class="ref"><img src="http://upload-images.jianshu.io/upload_images/127924-b48e22b6aef713ae.jpg"></div></div><div class="img"><div class="source"><img src="http://upload-images.jianshu.io/upload_images/127924-6e5e50300c4d219a.jpg"></div><div class="ref"><img src="http://upload-images.jianshu.io/upload_images/127924-6e5e50300c4d219a.jpg"></div></div></div></div></div><footer class="footer"><p> Copyright &copy; 2017 <a href="https://github.com/edwardzhong">Jeff Zhong</a></p></footer></div><script>var lbtn = document.getElementById("leftBtn"),
+	rbtn = document.getElementById("rightBtn"),
+	con = document.querySelector(".con");
+//轮播使用到的5张图片
+var configs = [
+		{ i: 2, css: "z-index:3;transform: translate3d(260px, 0, -30px)" },
+		{
+			i: 1,
+			css:
+				"z-index:2;transform-origin: left;transform: translate3d(-20px, 0, -60px) rotateY(5deg)"
+		},
+		{
+			i: 3,
+			css:
+				"z-index:2;transform-origin: right;transform: translate3d(540px, 0, -60px) rotateY(-5deg)"
+		},
+		{
+			i: 0,
+			css:
+				"z-index:1;transform-origin: left;transform: translate3d(-220px, 0, -70px) rotateY(5deg)"
+		},
+		{
+			i: 4,
+			css:
+				"z-index:1;transform-origin: right;transform: translate3d(740px, 0, -70px) rotateY(-5deg)"
+		}
 	],
 	//隐藏的图片
-	hiden={css:'transform: translate3d(200px, 0, -100px)'};
+	hiden = { css: "transform: translate3d(200px, 0, -100px)" };
 
-	class Stage{
-		constructor(){
-			this.list = Array.from(document.querySelectorAll('.con .img'));
-			this.isRunning = false;
-			this.timer;
-			let cl = configs.length,
-				l = this.list.length,i;
-			if(l<cl){
-				configs.length = l; 
-			}
-			configs.sort(function(a,b){
-				return a.i-b.i;
-			});
-			i=Math.floor(cl/2);
-			while(i--){
-				this.slideRight();
-			}
-			this.update();
-			this.bindEvent();
+class Stage {
+	constructor() {
+		this.list = Array.from(document.querySelectorAll(".con .img"));
+		this.isRunning = false;
+		this.timer;
+		let cl = configs.length,
+			l = this.list.length,
+			i;
+		if (l < cl) {
+			configs.length = l;
 		}
-		slideLeft(){
-			this.list.push(this.list.shift());
+		configs.sort(function(a, b) {
+			return a.i - b.i;
+		});
+		i = Math.floor(cl / 2);
+		while (i--) {
+			this.slideRight();
 		}
-		slideRight(){
-			this.list.unshift(this.list.pop());
-		}
-		update(){
-			this.list.forEach((item,i)=>{
-				item.style.cssText = (configs[i]||hiden).css;
-			});
-		}
-		bindEvent(){
-			let that = this;
-			lbtn.onclick=rbtn.onclick=function(e){
-				if(that.isRunning){return;}
-				if(this.id=='leftBtn'){
-					that.slideLeft();
-				} else {
-					that.slideRight();
-				}
-
-				that.update();
-				that.isRunning=true;
-				setTimeout(function(){
-					that.isRunning=false;
-				},400);
-			};
-			con.onmouseover=lbtn.onmouseover=rbtn.onmouseover=function(e){
-				clearInterval(that.timer);
-			};
-			con.onmouseout=lbtn.onmouseout=rbtn.onmouseout=function(e){
-				that.autoPlay();
-			};
-			con.onclick=function(e){
-				let target = e.target||e.srcElement;
-				if(target.nodeName!='IMG')return;
-				let index = -1,len = 0,delay =300;
-				that.list.forEach((item,i)=>{
-					if(target.src == item.children[0].children[0].src){
-						index = i;
-					}
-				});
-				index=index-Math.floor(configs.length/2);//在图片到正中间隔着几张
-
-				if(index==0) return;//点到的是正在最前面展示的图片
-				len=Math.abs(index);//动画要执行的次数
-				delay=Math.floor(delay/len);//动画间隔
-
-				~function animate(){
-					if(len<=0) return;
-					len--;
-					if(index<0){
-						that.slideRight();
-					} else {
-						that.slideLeft();
-					}
-					that.update();
-					setTimeout(animate, delay);
-				}();
-			};
-		}
-		autoPlay(){
-			let that = this;
-			that.timer = setInterval(function() {
-				that.slideLeft();
-				that.update();				
-			}, 2000);
-		}
+		this.update();
+		this.bindEvent();
 	}
+	slideLeft() {
+		this.list.push(this.list.shift());
+	}
+	slideRight() {
+		this.list.unshift(this.list.pop());
+	}
+	update() {
+		this.list.forEach((item, i) => {
+			item.style.cssText = (configs[i] || hiden).css;
+		});
+	}
+	bindEvent() {
+		let that = this;
+		lbtn.onclick = rbtn.onclick = function(e) {
+			if (that.isRunning) {
+				return;
+			}
+			if (this.id == "leftBtn") {
+				that.slideLeft();
+			} else {
+				that.slideRight();
+			}
 
-	new Stage().autoPlay();
-</script>
+			that.update();
+			that.isRunning = true;
+			setTimeout(function() {
+				that.isRunning = false;
+			}, 400);
+		};
+		con.onmouseover = lbtn.onmouseover = rbtn.onmouseover = function(e) {
+			clearInterval(that.timer);
+		};
+		con.onmouseout = lbtn.onmouseout = rbtn.onmouseout = function(e) {
+			that.autoPlay();
+		};
+		con.onclick = function(e) {
+			let target = e.target || e.srcElement;
+			if (target.nodeName != "IMG") return;
+			let index = -1,
+				len = 0,
+				delay = 300;
+			that.list.forEach((item, i) => {
+				if (target.src == item.children[0].children[0].src) {
+					index = i;
+				}
+			});
+			index = index - Math.floor(configs.length / 2); //在图片到正中间隔着几张
 
-</body>
-</html>
+			if (index == 0) return; //点到的是正在最前面展示的图片
+			len = Math.abs(index); //动画要执行的次数
+			delay = Math.floor(delay / len); //动画间隔
+
+			~(function animate() {
+				if (len <= 0) return;
+				len--;
+				if (index < 0) {
+					that.slideRight();
+				} else {
+					that.slideLeft();
+				}
+				that.update();
+				setTimeout(animate, delay);
+			})();
+		};
+	}
+	autoPlay() {
+		let that = this;
+		that.timer = setInterval(function() {
+			that.slideLeft();
+			that.update();
+		}, 2000);
+	}
+}
+
+new Stage().autoPlay();
+</script></body></html>

@@ -1,0 +1,16 @@
+.container{
+    position: relative;
+    width: 600px;
+    height: 500px;
+    margin: 0 auto;
+    border: 1px solid  #ddd;
+    background-color: #fff;
+}
+.container a{
+    position: absolute;
+    left: 0;
+    top: 0;
+    color: #000;
+    text-decoration: none;
+    font-weight: bold;
+}

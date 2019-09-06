@@ -1,43 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0"><title>前后转换焦点图</title><link rel="stylesheet" href="../css/main.css"><link rel="stylesheet" href="../css/fontello.css"><link rel="stylesheet" href="../css/style.css"><style>.wrap{
-    width: 820px;
-    height: 240px;
-    padding: 30px;
-    overflow: hidden;
-    margin: 0 auto;
-}
-.btn{
-    width: 30px;
-    height: 240px;
-    line-height: 240px;
-    text-align: center;
-    font-size: 20px;
-    cursor: pointer;
-}
-.btn:hover{
-    color: #067ab4;
-}
-.fl{float: left;}
-.fr{float: right;}
-.pics{
-    list-style-type: none;
-    margin: 0 30px;
-    padding: 0;
-    position: relative;
-}
-.pics li{
-    position: absolute;
-    top:60px;right:380px;
-    width: 160px;
-    height: 120px;
-    background-color: #000;
-    display: none;
-    cursor: pointer;
-}
-.pics img{
-    width: 100%;
-    height: 100%;
-    opacity: 1;
-}</style></head><body><div class="content"><a class="github" href="https://github.com/edwardzhong"><img src="../img/github.png"></a><header class="header"><h1><a href="../index.html">Jeff Zhong's Demo</a></h1></header><div class="main grid"><a class="effect-list" href="../index.html">&larr;&nbsp;effect list</a><h2>前后转换焦点图</h2><div class="wrap"><div class="btn fl" id="leftBtn"><i class="icon-left-open"></i></div><div class="btn fr" id="rightBtn"><i class="icon-right-open"></i></div><ul class="pics clearfix"><li><img src="http://upload-images.jianshu.io/upload_images/127924-dec37275411437de.jpg"></li><li><img src="http://upload-images.jianshu.io/upload_images/127924-84999ce72b31c3b5.jpg"></li><li><img src="http://upload-images.jianshu.io/upload_images/127924-b06e44e6a17caf43.jpg"></li><li><img src="http://upload-images.jianshu.io/upload_images/127924-8403145c3c922546.jpg"></li><li><img src="http://upload-images.jianshu.io/upload_images/127924-4ef33634665463af.jpg"></li><li><img src="http://upload-images.jianshu.io/upload_images/127924-0999617a887bb6a3.jpg"></li><li><img src="http://upload-images.jianshu.io/upload_images/127924-b48e22b6aef713ae.jpg"></li><li><img src="http://upload-images.jianshu.io/upload_images/127924-6e5e50300c4d219a.jpg"></li></ul></div></div><footer class="footer"><p> Copyright &copy; 2017 <a href="https://github.com/edwardzhong">Jeff Zhong</a></p></footer></div><script src="../js/jquery-2.2.3.min.js"></script><script>//轮播使用到的5张图片
+//轮播使用到的5张图片
 var configs = [
 		{
 			i: 2,
@@ -214,4 +175,3 @@ $(".pics").on("click", "li", function(event) {
 
 init();
 next();
-</script></body></html>

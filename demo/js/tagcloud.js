@@ -1,19 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0"><title>3D 标签云</title><link rel="stylesheet" href="../css/main.css"><link rel="stylesheet" href="../css/fontello.css"><link rel="stylesheet" href="../css/style.css"><style>.container{
-    position: relative;
-    width: 600px;
-    height: 500px;
-    margin: 0 auto;
-    border: 1px solid  #ddd;
-    background-color: #fff;
-}
-.container a{
-    position: absolute;
-    left: 0;
-    top: 0;
-    color: #000;
-    text-decoration: none;
-    font-weight: bold;
-}</style></head><body><div class="content"><a class="github" href="https://github.com/edwardzhong"><img src="../img/github.png"></a><header class="header"><h1><a href="../index.html">Jeff Zhong's Demo</a></h1></header><div class="main grid"><a class="effect-list" href="../index.html">&larr;&nbsp;effect list</a><h2>3D 标签云</h2><div class="container"></div></div><footer class="footer"><p> Copyright &copy; 2017 <a href="https://github.com/edwardzhong">Jeff Zhong</a></p></footer></div><script src="../js/jquery-2.2.3.min.js"></script><script>function drawTags(){
+function drawTags(){
     var arr=['javaScript','html','css','jQuery','angularJS','mvvm','mvc','nodeJS','html5','css3','canvas','webGL','svg','backboneJS','noSql','mongoDB','mySQL','android','ios','phoneGap','webApp','knockoutJS','bootStrap','chrome','firefox'],
         len=arr.length,
         tags=[],
@@ -109,4 +94,4 @@
     init();
     action();
 }
-drawTags();</script></body></html>
+drawTags();
