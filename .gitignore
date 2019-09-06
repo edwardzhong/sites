@@ -2,4 +2,6 @@ gulpfile.js
 node_modules
 package.json
 demo/posts
+demo/index.pug
+demo/layout.pug
 demo/layout.html
