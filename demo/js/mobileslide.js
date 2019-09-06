@@ -1,49 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0"><title>手机版触控焦点图</title><link rel="stylesheet" href="../css/main.css"><link rel="stylesheet" href="../css/fontello.css"><link rel="stylesheet" href="../css/style.css"><style>.container{
-    position: relative;
-    width: 360px;
-    height: 240px;
-    margin: 0 auto;
-    overflow: hidden;
-}
-ul{
-    list-style: none;
-    margin: 0;
-}
-.pages{
-    width: 100%;
-    height: 100%;
-}
-.pages li{
-    display: none;
-    position: absolute;
-    left: 0;
-    top: 0;
-    width: 100%;
-    height: 100%;
-}
-.pages img{
-    width: 100%;
-    height: 100%;
-}
-.ctrl{
-    position: absolute;
-    left: 50%;
-    transform: translateX(-50%);
-    bottom: 10px;
-}
-.ctrl li{
-    float: left;
-    width: 20px;
-    height: 20px;
-    margin: 5px;
-    border-radius: 50%;
-    background-color: rgba(0, 0, 0, .7);
-}
-.ctrl li.active{
-    background-color: #00acee;
-}
-.restore{-webkit-transition:-webkit-transform .2s linear;}
-.moving{-webkit-transition:-webkit-transform .2s linear;}</style></head><body><div class="content"><a class="github" href="https://github.com/edwardzhong"><img src="../img/github.png"></a><header class="header"><h1><a href="../index.html">Jeff Zhong's Demo</a></h1></header><div class="main grid"><a class="effect-list" href="../index.html">&larr;&nbsp;effect list</a><h2>手机版触控焦点图</h2><div class="container"><ul class="pages clearfix"><li><img src="http://upload-images.jianshu.io/upload_images/127924-ced93ff3c4e0bb00.jpg"></li><li><img src="http://upload-images.jianshu.io/upload_images/127924-5eec11315cb840ab.jpg"></li><li><img src="http://upload-images.jianshu.io/upload_images/127924-dec37275411437de.jpg"></li><li><img src="http://upload-images.jianshu.io/upload_images/127924-84999ce72b31c3b5.jpg"></li><li><img src="http://upload-images.jianshu.io/upload_images/127924-0a773fc61975201e.jpg"></li><li><img src="http://upload-images.jianshu.io/upload_images/127924-8403145c3c922546.jpg"></li></ul><ul class="ctrl"><li class="active"></li><li></li><li></li><li></li><li></li><li></li></ul></div></div><footer class="footer"><p> Copyright &copy; 2017 <a href="https://github.com/edwardzhong">Jeff Zhong</a></p></footer></div><script src="../js/Zepto.js"></script><script>/**
+/**
  * 返回浏览器特有css前缀
  */
 var webkit = (function() {
@@ -206,4 +161,3 @@ function touchSlide() {
 }
 
 touchSlide();
-</script></body></html>

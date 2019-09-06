@@ -1,67 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0"><title>仿豆瓣分页</title><link rel="stylesheet" href="../css/main.css"><link rel="stylesheet" href="../css/fontello.css"><link rel="stylesheet" href="../css/style.css"><style>.list{
-    position: relative;
-    width: 640px;
-    height: 250px;
-    margin: 0 auto;
-    border: 1px solid #ddd;
-    background-color: #fff;
-}
-.list li{
-    position: absolute;
-    top: 10px;left: 10px;
-    margin:0 30px 30px 0;
-    width: 100px;height: 100px;
-    text-align: center;
-    line-height: 100px;
-    color: #fff;
-    background-color: #88aca1;
-    transition: left 0.3s ease-in-out,top 0.3s ease-in-out,width 0.3s ease-in-out,height 0.3s ease-in-out;
-}
-.pagination {
-    display: inline-block;
-    padding-left: 0;
-    margin: 20px 0;
-    border-radius: 4px;
-}
-.pagination>li {
-    display: inline;
-}
-.pagination>li:first-child>a, .pagination>li:first-child>span {
-    margin-left: 0;
-    border-top-left-radius: 4px;
-    border-bottom-left-radius: 4px;
-}
-.pagination>li:last-child>a, .pagination>li:last-child>span {
-    border-top-right-radius: 4px;
-    border-bottom-right-radius: 4px;
-}
-.pagination>li>a, .pagination>li>span {
-    position: relative;
-    float: left;
-    padding: 6px 12px;
-    margin-left: -1px;
-    line-height: 1.42857143;
-    color: hsl(208, 56%, 46%);
-    text-decoration: none;
-    background-color: hsl(0, 0%, 100%);
-    border: 1px solid hsl(0, 0%, 87%);
-}
-.pagination>li>a:focus, .pagination>li>a:hover, .pagination>li>span:focus, .pagination>li>span:hover {
-    z-index: 2;
-    color: hsl(208, 56%, 31%);
-    background-color: hsl(0, 0%, 93%);
-    border-color: hsl(0, 0%, 87%);
-}
-.pagination>.disabled>a:focus, .pagination>.disabled>a:hover, .pagination>.disabled>span:focus, .pagination>.disabled>span:hover {
-  cursor: not-allowed;
-}
-.pagination>.active>a, .pagination>.active>a:focus, .pagination>.active>a:hover, .pagination>.active>span, .pagination>.active>span:focus, .pagination>.active>span:hover {
-    z-index: 3;
-    color: hsl(0, 0%, 100%);
-    cursor: default;
-    background-color: hsl(208, 56%, 46%);
-    border-color: hsl(208, 56%, 46%);
-}</style></head><body><div class="content"><a class="github" href="https://github.com/edwardzhong"><img src="../img/github.png"></a><header class="header"><h1><a href="../index.html">Jeff Zhong's Demo</a></h1></header><div class="main grid"><a class="effect-list" href="../index.html">&larr;&nbsp;effect list</a><h2>仿豆瓣分页</h2><div class="wrap"><ul class="list clearfix"></ul><ul class="pagination" id="page"></ul></div></div><footer class="footer"><p> Copyright &copy; 2017 <a href="https://github.com/edwardzhong">Jeff Zhong</a></p></footer></div><script src="../js/jquery-2.2.3.min.js"></script><script>/**
+/**
  * 分页组件
  */
 $.fn.doubanPage=function(options){
@@ -289,4 +226,3 @@ $('#page').doubanPage({
         }
     }
 });
-</script></body></html>

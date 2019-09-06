@@ -1,0 +1,55 @@
+.wrap {
+	width: 600px;
+	height: 450px;
+	margin: 0 auto;
+	position: relative;
+	perspective: 500px; /*必须放在3D元素的父节点上*/
+	perspective-origin: left; /*透视所在点*/
+}
+.box {
+	position: relative;
+	width: 200px;
+	height: 200px;
+	margin: 200px auto;
+	transform-style: preserve-3d; /*进行3d模式*/
+	transform-origin: center;
+	animation: turn 2s linear infinite;
+}
+.box div {
+	position: absolute;
+	backface-visibility: hidden; /*隐藏背面*/
+	width: 200px;
+	height: 200px;
+}
+.box div:nth-of-type(1) {
+	background-color: #7ac143;
+	transform: translateZ(100px);
+}
+.box div:nth-of-type(2) {
+	background-color: #00a78e;
+	transform: rotateX(90deg) translateZ(100px);
+}
+.box div:nth-of-type(3) {
+	background-color: #00bce4;
+	transform: rotateY(90deg) translateZ(100px);
+}
+.box div:nth-of-type(4) {
+	background-color: #7d3f98;
+	transform: rotateY(-90deg) translateZ(100px);
+}
+.box div:nth-of-type(5) {
+	background-color: #ffd900;
+	transform: rotateX(-90deg) translateZ(100px);
+}
+.box div:nth-of-type(6) {
+	background-color: #f47937;
+	transform: rotateY(-180deg) translateZ(100px);
+}
+@keyframes turn {
+	from {
+		transform: rotateX(0) rotateY(0) rotateZ(0);
+	}
+	to {
+		transform: rotateX(360deg) rotateY(360deg) rotateZ(360deg);
+	}
+}

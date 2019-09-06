@@ -1,0 +1,16 @@
+canvas {
+    border: 1px solid #eee;
+}
+button{
+    padding: 5px 30px;
+    margin-left: 700px;
+    border:1px solid hsl(200,100%,45%);
+    border-radius: 4px;
+    background-color: hsl(200,100%,50%);
+    color: #fff;
+    outline: none;
+    cursor: pointer;
+}
+button:hover{
+    background-color: hsl(200,100%,45%);
+}

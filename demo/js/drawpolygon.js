@@ -1,19 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0"><title>画多边形例子</title><link rel="stylesheet" href="../css/main.css"><link rel="stylesheet" href="../css/fontello.css"><link rel="stylesheet" href="../css/style.css"><style>canvas {
-    border: 1px solid #eee;
-}
-button{
-    padding: 5px 30px;
-    margin-left: 700px;
-    border:1px solid hsl(200,100%,45%);
-    border-radius: 4px;
-    background-color: hsl(200,100%,50%);
-    color: #fff;
-    outline: none;
-    cursor: pointer;
-}
-button:hover{
-    background-color: hsl(200,100%,45%);
-}</style></head><body><div class="content"><a class="github" href="https://github.com/edwardzhong"><img src="../img/github.png"></a><header class="header"><h1><a href="../index.html">Jeff Zhong's Demo</a></h1></header><div class="main grid"><a class="effect-list" href="../index.html">&larr;&nbsp;effect list</a><h2>画多边形例子</h2><p>鼠标单击画布，然后移动鼠标，回车确认图形</p><p>下边清除按钮</p><canvas id="canvas" width="800" height="500"></canvas><button id="btn">清除</button></div><footer class="footer"><p> Copyright &copy; 2017 <a href="https://github.com/edwardzhong">Jeff Zhong</a></p></footer></div><script>var canvas = document.getElementById("canvas");
+var canvas = document.getElementById("canvas");
 var ctx = canvas.getContext("2d");
 var H = canvas.height;
 var W = canvas.width;
@@ -93,4 +78,3 @@ function windowToCanvas(canvas, x, y) {
 		y: y - box.top * (canvas.height / box.height)
 	};
 }
-</script></body></html>

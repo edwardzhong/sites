@@ -1,0 +1,104 @@
+.grid{
+    max-width: 100%;
+    max-height: 100%;
+}
+.toolbar{
+    /* padding: 10px; */
+    color: #555;
+    font-size: 14px;
+    display: flex;
+    flex-flow: row nowrap;
+    min-width: 1000px;
+}
+.block{
+    padding: 4px;
+    height: 90px;
+    display: flex;
+    border: 1px solid #ddd;
+    border-width: 1px 0 1px 1px;
+    flex-flow: column wrap;
+    justify-content: space-around;
+}
+
+.style-block{
+    width: 240px;
+}
+.style-block span{
+    padding-left: 10px;
+}
+.Polygon-block{
+    width: 240px;
+}
+.Polygon-block input[type=number]{
+    /* margin-top: 4px; */
+    width: 40px;
+    padding: 2px 4px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    outline: none;
+}
+.info-block{
+    width: 120px;
+    border: 1px solid #ddd;
+}
+.info{
+    line-height: 2;
+    padding-left: 10px;
+}
+.info span{
+    font-size: 12px;
+    color: #e00;
+}
+
+.wrap{
+    position: relative;
+    width: 80px;
+    height: 30px;
+    text-align: center;
+    overflow: hidden;
+    
+}
+.wrap .label{
+    padding: 4px;
+    border-radius: 5px;
+}
+.wrap [type=radio]{
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 99;
+    opacity: 0;
+    cursor: pointer;
+}
+.wrap [type=radio]:checked~.label{
+    background: hsl(200, 100%, 40%);
+    color: hsl(0, 0%, 100%)
+}
+.desc{
+    line-height: 2;
+    color: hsl(0, 0%, 80%)
+}
+label{
+    display: block;
+    padding: 2px;
+}
+button{
+    margin-left: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    background: #fff;
+    padding: 3px 20px;
+    cursor: pointer;
+    outline: none;
+}
+button:hover{
+    background: #eee;
+}
+canvas{
+    float: left;
+}
+.codes{
+    width: 400px;
+}

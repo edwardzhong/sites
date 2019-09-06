@@ -1,16 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0"><title>跑马灯</title><link rel="stylesheet" href="../css/main.css"><link rel="stylesheet" href="../css/fontello.css"><link rel="stylesheet" href="../css/style.css"><style>.container{
-    width: 400px;
-    height: 20px;
-    margin: 0 auto;
-    overflow: hidden;
-}
-ul{
-    list-style: none;
-    margin: 0;
-}
-ul li{
-    float: left;
-}</style></head><body><div class="content"><a class="github" href="https://github.com/edwardzhong"><img src="../img/github.png"></a><header class="header"><h1><a href="../index.html">Jeff Zhong's Demo</a></h1></header><div class="main grid"><a class="effect-list" href="../index.html">&larr;&nbsp;effect list</a><h2>跑马灯</h2><div class="container"><ul class="news clearfix"></ul></div></div><footer class="footer"><p> Copyright &copy; 2017 <a href="https://github.com/edwardzhong">Jeff Zhong</a></p></footer></div><script src="../js/jquery-2.2.3.min.js"></script><script>var Msgs = [
+var Msgs = [
 	"aaa获得了大疆无人机 !",
 	"bbb获得了苹果MacBook Pro !",
 	"ccc获得了XBOX 360 !",
@@ -66,4 +54,3 @@ function marquee(texts, isRight) {
 }
 
 marquee(Msgs, false);
-</script></body></html>

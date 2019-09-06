@@ -1,0 +1,61 @@
+.container{
+    position: relative;
+    width: 300px;
+    height: 300px;
+    border-radius: 50%;
+    margin: 0 auto;
+    border:1px solid #ddd;
+    background-color: #eee;
+    box-shadow: 1px 1px 4px #ccc;
+}
+.center{
+    position: absolute;
+    top: 142px;left: 142px;
+    width: 16px;height: 16px;border-radius: 50%;
+    background-color: #bbb;
+}
+.mark{
+    position: absolute;
+    top: 0;left: 148px;
+    width: 4px;height: 10px;
+    background-color: #999;
+    transform-origin:2px 150px;
+    transform:rotate(0deg);
+}
+.mark i{
+    position: absolute;
+    width: 22px;height: 20px;
+    top: 20px;left: -10px;
+    text-align: center;
+    font-style: normal;
+    font-weight: bold;
+    color:#0aa;
+    font-size: 20px;
+}
+.hour{
+    position: absolute;
+    top: 70px;left: 146px;
+    width: 8px;height: 82px;
+    background-color: #999;
+    border-radius: 8px;
+    transform-origin:4px 80px;
+    transform:rotate(0deg);
+}
+.min{
+    position: absolute;
+    top: 50px;left: 147px;
+    width: 6px;height: 102px;
+    background-color: #666;
+    border-radius: 6px;
+    transform-origin:3px 100px;
+    transform:rotate(0deg);
+}
+.sec{
+    position: absolute;
+    top: 18px;left: 149px;
+    width: 2px;height: 150px;
+    background-color: #b23;
+    border-radius: 2px;
+    transform-origin:1px 132px;
+    transform:rotate(0deg);
+}

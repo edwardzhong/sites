@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0"><title>沿贝塞尔曲线运动</title><link rel="stylesheet" href="../css/main.css"><link rel="stylesheet" href="../css/fontello.css"><link rel="stylesheet" href="../css/style.css"></head><body><div class="content"><a class="github" href="https://github.com/edwardzhong"><img src="../img/github.png"></a><header class="header"><h1><a href="../index.html">Jeff Zhong's Demo</a></h1></header><div class="main grid"><a class="effect-list" href="../index.html">&larr;&nbsp;effect list</a><h2>沿贝塞尔曲线运动</h2><p>请点击背景任意点试试</p><canvas id="canvas" width="800" height="600"></canvas></div><footer class="footer"><p> Copyright &copy; 2017 <a href="https://github.com/edwardzhong">Jeff Zhong</a></p></footer></div><script src="../js/util.js"></script><script src="../js/tween.js"></script><script>var canvas = document.getElementById("canvas"),
+var canvas = document.getElementById("canvas"),
 	ctx = canvas.getContext("2d");
 canvas.style.background = "black";
 ctx.lineWidth = 1;
@@ -114,4 +114,4 @@ canvas.onclick = function(e) {
 	c2 = { x: end.x, y: canvas.height - Math.abs(start.x - end.x) };
 	animate();
 };
-setTimeout(animate, 500);</script></body></html>
+setTimeout(animate, 500);
