@@ -116,7 +116,6 @@
             addExtensionToContext(gl, supportedExtensions[ii]);
         }
     }
-
     
     /**
      * 获取webgl1上下文
@@ -285,7 +284,7 @@
     function createProgramInfo(gl, ...shaders) {
         // Lets assume if there is no \n it's an id
         if(Array.isArray(shaders[0])) { shaders = shaders[0]; }//传的是数组
-        const program = shaders[0].indexOf('\n') > 0 ? createProgramBySource(gl, shaders) : createProgramByScript(gl, shaders);
+        const program = shaders[0].indexOf('{') > 0 ? createProgramBySource(gl, shaders) : createProgramByScript(gl, shaders);
         const uniformSetters = createUniformSetters(gl, program);
         const attribSetters = createAttributeSetters(gl, program);
         return {
@@ -1094,7 +1093,10 @@
 
     //突破跨域加载图片
     function loadImageCORS(img, url) {
-        url = url.search('http') > -1? url :location.origin + url;
+        const last = location.href.lastIndexOf('/') + 1;
+        if(url.search('http') < 0){
+            url = location.href.substr(0, last) + url;
+        }
         if ((new URL(url)).origin !== window.location.origin) {
             img.crossOrigin = "";
         }

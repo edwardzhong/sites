@@ -1,0 +1,6 @@
+label{padding: 10px;}
+span {
+    display: inline-block;
+    padding: 0 10px;
+    width: 40px;
+}

@@ -1,179 +1,19 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
-<title>阴影综合(多物体高精度PCF)</title>
-<link rel="stylesheet" href="../../css/pure-min.css">
-<link rel="stylesheet" href="../../css/fontello.css">
-<link rel="stylesheet" href="../css/style.css">
-
-</head>
-<body>
-	<div class="content">
-		<a class="github" href="https://github.com/edwardzhong">
-			<img src="../img/github.png" alt="">
-		</a>
-		<header class="header">
-			<h1><a href="../index.html">Jeff Zhong's Demo</a></h1>
-		</header>
-		<div class="main grid">
-		<a class="effect-list" href="../index.html">&larr;&nbsp;effect list</a>
-		
-<h2>阴影综合(多物体高精度PCF)</h2>
-<p>拖动鼠标可旋转和缩放画面</p>
-<canvas id="canvas" width="600" height="450"></canvas>
- </div>
-		<footer class="footer">
-			<p>Copyright &copy; 2017 <a href="https://github.com/edwardzhong">Jeff Zhong</a></p>
-		</footer>
-	</div>
-
-<script src="../../js/webgl-util.js"></script>
-<script src="../../js/util.js"></script>
-<script src="../../js/matrix.js"></script>
-<script src="../../js/polygon.js"></script>
-<script type="x-shader/x-vertex" id="svs">
-    attribute vec4 a_position; 
-    uniform mat4 u_vpMatrix; 
-    uniform mat4 u_modelMatrix; 
-
-    void main() { 
-        gl_Position = u_vpMatrix * u_modelMatrix * a_position; 
-    }
-</script>
-<script type="x-shader/x-fragment" id="sfs">
-    #ifdef GL_ES
-        precision highp float;
-    #endif
-    /**
-     * 分解保存深度值
-     */
-    vec4 pack (float depth) {
-        // 当光源与照射物间距离变远,z值会增大,而1个分量的8位已经不够存储深度值,所以使用4个分量(rgba) 4字节共32位来存储z值,1个字节8位精度为1/256
-        // gl_FragCoord:片元的坐标,fract():返回数值的小数部分
-        const vec4 bitShift = vec4(1.0, 256.0, 256.0 * 256.0, 256.0 * 256.0 * 256.0);
-        const vec4 bitMask = vec4(1.0/256.0, 1.0/256.0, 1.0/256.0, 0.0);
-        vec4 rgbaDepth = fract(depth * bitShift); // 计算每个点的z值 
-        rgbaDepth -= rgbaDepth.gbaa * bitMask; // 清除多余的部分
-        return rgbaDepth;
-    }
-    //将深度值z分段存储到rgba分量, 接着rgba会绘制到帧缓冲颜色关联对象中的纹理对象，在这里帧缓冲对象只是用于保存数据，它是离屏渲染，不会绘制到屏幕
-    void main() {
-        gl_FragColor = pack(gl_FragCoord.z);
-    }
-</script>
-<script type="x-shader/x-vertex" id="vs">
-    attribute vec4 a_position;
-    attribute vec4 a_normal;
-    uniform mat4 u_modelMatrix;
-    uniform mat4 u_vpMatrix;//当前视点观测的视图投影矩阵
-    uniform mat4 u_vpMatrixFromLight;//光源处观察的视图投影矩阵
-    uniform mat4 u_normalMatrix;
-    varying vec4 v_positionFromLight;
-    varying vec3 v_position;
-    varying vec3 v_normal;
-
-    void main() {
-        gl_Position = u_vpMatrix * u_modelMatrix * a_position; // 当前视点观察到的坐标
-        v_positionFromLight = u_vpMatrixFromLight * u_modelMatrix * a_position;//光源坐标系下的位置,传给片元着色器，xy用于查找阴影纹理颜色，z是之后用于比较的深度值
-        v_position = vec3(u_modelMatrix * a_position);//顶点在世界坐标系中的位置
-        v_normal = vec3(u_normalMatrix * a_normal);
-    }
-</script>
-<script type="x-shader/x-fragment" id="fs">
-    #ifdef GL_ES
-        precision mediump float;
-    #endif
-    uniform vec3 u_lightColor;
-    uniform vec3 u_lightPosition;
-    uniform vec3 u_ambientColor;
-    uniform vec3 u_viewPosition;
-    uniform sampler2D u_shadowMap;
-    uniform vec3 u_color;
-    varying vec4 v_positionFromLight;
-    varying vec3 v_position;
-    varying vec3 v_normal;
-
-    /**
-     * 释出深度值z
-     */
-    float unpack(const in vec4 rgbaDepth) {
-        const vec4 bitShift = vec4(1.0, 1.0/256.0, 1.0/(256.0*256.0), 1.0/(256.0*256.0*256.0));
-        return dot(rgbaDepth, bitShift);
-    }
-    // pcf消除阴影边缘的锯齿
-    float pcf(float cosTheta,vec4 position) {
-        float shadows = 0.0;
-        float opacity = 0.4;// 基底阴影alpha值
-        float texelSize = 1.0/2048.0;// 阴影像素尺寸,值越小阴影越逼真
-        vec4 rgbaDepth;
-        // 将xyz坐标从齐次坐标区间[-1,1]归一化为纹理使用的[0,1]，xy分量用于查找纹理颜色值rgba，z分量就是在光源坐标系下的深度值; 
-        vec3 shadowCoord = (position.xyz/position.w)/2.0 + 0.5;
-        // 根据光线与表面的夹角计算偏移量,用于消除马赫带
-        float bias = 0.005 * tan(acos(cosTheta));
-        bias = clamp(bias, 0.0015, 0.01);
-
-        for(float y=-1.5; y <= 1.5; y += 1.0){
-            for(float x=-1.5; x <=1.5; x += 1.0){
-                rgbaDepth = texture2D(u_shadowMap, shadowCoord.xy + vec2(x,y) * texelSize);
-                shadows += step(shadowCoord.z - bias, unpack(rgbaDepth));
-            }
-        }
-        shadows /= 16.0;
-        return min(opacity + shadows, 1.0);
-        //不使用pcf的方案
-        //vec4 rgbaDepth = texture2D(u_shadowMap, shadowCoord.xy);// 获取指定纹理坐标处的像素颜色rgba
-        //float depth = unpack(rgbaDepth); // 从纹理颜色值(rgba)解析出阴影深度值z
-        //float visibility = (shadowCoord.z > depth + bias) ? 0.5 : 1.0;//大于阴影贴图中的z值,说明在阴影中
-    }
-    void main() {
-        // 对法线归一化，因为内插之后长度不一定是1
-        vec3 normal = normalize(v_normal);
-        
-        /**
-        * 计算光线方向
-        */
-        // 点光源反向 光源位置-顶点位置
-        vec3 lightDirection = normalize(u_lightPosition - v_position);
-        // 平行光源反向
-        // vec3 lightDirection = normalize(u_lightPosition);
-
-        // 光线方向和法向量的夹角，它们的点积即可求出夹角余弦值(范围0-90度)
-        float cosTheta = max(dot(lightDirection, normal), 0.0);
-
-        // 漫反射亮度
-        vec3 diffuse = u_lightColor * u_color.rgb * cosTheta;
-        
-        // 环境光亮度
-        vec3 ambient = u_ambientColor * u_color.rgb;
-        
-        /**
-         * 高光部分
-         */
-        float shininess =50.0;
-        vec3 specularColor = vec3(1.0,1.0,1.0);//镜面反射光颜色
-        vec3 viewDirection = normalize(u_viewPosition-v_position);// 反射方向
-
-        // phong 模型 高光部分更加集中
-        // vec3 reflectionDirection = normalize(reflect(-lightDirection, normal));
-        // float specularIntensity = pow(max(dot(reflectionDirection, viewDirection), 0.0), shininess);
-
-        // Blinn-Phong 模型 高光过渡更自然
-        vec3 halfwayDir = normalize(lightDirection + viewDirection);
-        float specularIntensity = pow(max(dot(normal, halfwayDir), 0.0), shininess);
-
-        // 镜面高光亮度
-        vec3 specular = specularColor.rgb * specularIntensity;
-        
-        // pcf 通过光源坐标系下的位置找出阴影纹理的颜色值，再由颜色值rgba分解出深度值z
-        float shadow = pcf(cosTheta,v_positionFromLight);
-        
-        specular *= step(shadow, 1.0);// 阴影处没有高光
-        gl_FragColor = vec4(ambient + (diffuse + specular) * shadow, 1.0);
-    }
-</script>
-<script>
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0"><title>高精度PCF阴影</title><link rel="stylesheet" href="../css/main.css"><link rel="stylesheet" href="../css/fontello.css"><link rel="stylesheet" href="../css/style.css"><style>h3{
+    padding-left: 10px;
+}
+label{
+    display: inline-block;
+    width: 60px;
+    padding: 0 10px;
+}
+span{
+    display: inline-block;
+    width: 40px;
+}</style></head><body><div class="content"><a class="github" href="https://github.com/edwardzhong"><img src="../img/github.png"></a><header class="header"><h1><a href="../index.html">Jeff Zhong's Demo</a></h1></header><div class="main grid"><a class="effect-list" href="../index.html">&larr;&nbsp;effect list</a><h2>高精度PCF阴影</h2><p>拖动鼠标可旋转和缩放画面</p><canvas id="canvas" width="600" height="450"></canvas></div><footer class="footer"><p> Copyright &copy; 2017 <a href="https://github.com/edwardzhong">Jeff Zhong</a></p></footer></div><script src="../js/webgl-util.js"></script><script src="../js/util.js"></script><script src="../js/matrix.js"></script><script src="../js/polygon.js"></script><script>
+const svs = 'attribute vec4 a_position; uniform mat4 u_vpMatrix; uniform mat4 u_modelMatrix; void main() { gl_Position = u_vpMatrix * u_modelMatrix * a_position; }';
+const sfs = 'precision highp float; vec4 pack (float depth) { const vec4 bitShift = vec4(1.0, 256.0, 256.0 * 256.0, 256.0 * 256.0 * 256.0); const vec4 bitMask = vec4(1.0/256.0, 1.0/256.0, 1.0/256.0, 0.0); vec4 rgbaDepth = fract(depth * bitShift); rgbaDepth -= rgbaDepth.gbaa * bitMask; return rgbaDepth; } void main() { gl_FragColor = pack(gl_FragCoord.z); }';
+const vs = 'attribute vec4 a_position; attribute vec4 a_normal; uniform mat4 u_modelMatrix; uniform mat4 u_vpMatrix; uniform mat4 u_vpMatrixFromLight; uniform mat4 u_normalMatrix; varying vec4 v_positionFromLight; varying vec3 v_position; varying vec3 v_normal; void main() { gl_Position = u_vpMatrix * u_modelMatrix * a_position; v_positionFromLight = u_vpMatrixFromLight * u_modelMatrix * a_position; v_position = vec3(u_modelMatrix * a_position); v_normal = vec3(u_normalMatrix * a_normal); }';
+const fs = 'precision mediump float; uniform vec3 u_lightColor; uniform vec3 u_lightPosition; uniform vec3 u_ambientColor; uniform vec3 u_viewPosition; uniform sampler2D u_shadowMap; uniform vec3 u_color; varying vec4 v_positionFromLight; varying vec3 v_position; varying vec3 v_normal; float unpack(const in vec4 rgbaDepth) { const vec4 bitShift = vec4(1.0, 1.0/256.0, 1.0/(256.0*256.0), 1.0/(256.0*256.0*256.0)); return dot(rgbaDepth, bitShift); } float pcf(float cosTheta,vec4 position) { float shadows = 0.0; float opacity = 0.4; float texelSize = 1.0/2048.0; vec4 rgbaDepth; vec3 shadowCoord = (position.xyz/position.w)/2.0 + 0.5; float bias = 0.005 * tan(acos(cosTheta)); bias = clamp(bias, 0.0015, 0.01); for(float y=-1.5; y <= 1.5; y += 1.0){ for(float x=-1.5; x <=1.5; x += 1.0){ rgbaDepth = texture2D(u_shadowMap, shadowCoord.xy + vec2(x,y) * texelSize); shadows += step(shadowCoord.z - bias, unpack(rgbaDepth)); } } shadows /= 16.0; return min(opacity + shadows, 1.0); } void main() { vec3 normal = normalize(v_normal); vec3 lightDirection = normalize(u_lightPosition - v_position); float cosTheta = max(dot(lightDirection, normal), 0.0); vec3 diffuse = u_lightColor * u_color.rgb * cosTheta; vec3 ambient = u_ambientColor * u_color.rgb; float shininess =50.0; vec3 specularColor = vec3(1.0,1.0,1.0); vec3 viewDirection = normalize(u_viewPosition-v_position); vec3 halfwayDir = normalize(lightDirection + viewDirection); float specularIntensity = pow(max(dot(normal, halfwayDir), 0.0), shininess); vec3 specular = specularColor.rgb * specularIntensity; float shadow = pcf(cosTheta,v_positionFromLight); specular *= step(shadow, 1.0); gl_FragColor = vec4(ambient + (diffuse + specular) * shadow, 1.0); }';
 var canvas = document.getElementById('canvas'),
     OFFSCREEN_WIDTH = 2048,
     OFFSCREEN_HEIGHT = 2048,
@@ -191,9 +31,9 @@ var canvas = document.getElementById('canvas'),
     // 创建帧缓冲区对象 (FBO)  
     var fbo = createFramebuffer(gl,{ w: OFFSCREEN_WIDTH, h: OFFSCREEN_HEIGHT });
     // 初始化阴影着色器,创建对应program
-    var shadowProgram=createProgramInfo(gl,['svs','sfs']);
+    var shadowProgram=createProgramInfo(gl,svs,sfs);
     // 初始化普通着色器,创建对应program
-    var normalProgram=createProgramInfo(gl,['vs','fs']);
+    var normalProgram=createProgramInfo(gl,vs,fs);
     // 获取对应图形的缓冲区对象
     var planeBuffers = createBufferInfoFromArrays(gl,Plane(8));
     var cubeBuffers = createBufferInfoFromArrays(gl,Cube());
@@ -424,8 +264,4 @@ var canvas = document.getElementById('canvas'),
         canvas.removeEventListener('mouseup', arguments.callee, false);
         canvas.removeEventListener('mousemove', mouseMove, false);
         canvas.removeEventListener('mouseout', mouseUp, false);
-    }
-</script>
-
-</body>
-</html>
+    }</script></body></html>

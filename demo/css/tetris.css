@@ -1,0 +1,14 @@
+.wrap{
+    width: 600px;
+    margin: 0 auto;
+    background: #fff;
+}
+.info{
+    padding-top: 40px;
+    height: 440px;
+}
+p{
+    margin: 0;
+    line-height: 1.6;
+}
+canvas{float: left;}

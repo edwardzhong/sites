@@ -1,0 +1,197 @@
+const vs = 'attribute vec4 a_Position; uniform mat4 u_MvpMatrix; attribute vec4 a_Color; varying vec4 v_color; void main() { gl_Position = u_MvpMatrix * a_Position; v_color=a_Color; }';
+const fs = 'precision mediump float; varying vec4 v_color; void main() { gl_FragColor = v_color; }'
+
+const canvas = document.getElementById('canvas');
+const gl = get3DContext(canvas,true);
+
+function get3DContext(canvas, opt) {
+    const names = ["webgl", "experimental-webgl"];
+    let context = null;
+    for (let i = 0, len = names.length; i < len; i++) {
+        context = canvas.getContext(names[i], opt);
+        if (context) {
+            break;
+        }
+    }
+    return context;
+}
+
+function createProgramBySource(gl, ...shaders) {
+    if(Array.isArray(shaders[0])) { shaders = shaders[0]; }//传的是数组
+    // 创建着色器对象
+    const vertexShader = loadShader(gl, gl.VERTEX_SHADER, shaders[0]);
+    const fragmentShader = loadShader(gl, gl.FRAGMENT_SHADER, shaders[1]);
+    if (!vertexShader || !fragmentShader) {
+        return null;
+    }
+
+    // 创建程序对象
+    const program = gl.createProgram();
+    if (!program) {
+        return null;
+    }
+
+    // 为程序对象分配着色器
+    gl.attachShader(program, vertexShader);
+    gl.attachShader(program, fragmentShader);
+
+    // 连接程序对象
+    gl.linkProgram(program);
+
+    // 检查连接结果
+    const linked = gl.getProgramParameter(program, gl.LINK_STATUS);
+    if (!linked) {
+        const error = gl.getProgramInfoLog(program);
+        console.log('Failed to link program: ' + error);
+        gl.deleteProgram(program);
+        gl.deleteShader(fragmentShader);
+        gl.deleteShader(vertexShader);
+        return null;
+    }
+    return program;
+}
+function loadShader(gl, type, source) {
+    // 创建着色器对象
+    const shader = gl.createShader(type);
+    if (!shader) {
+        console.log('unable to create shader');
+        return null;
+    }
+
+    // 向着色器程序填充代码
+    gl.shaderSource(shader, source);
+
+    // 编译着色器
+    gl.compileShader(shader);
+
+    // 检查编译结果
+    const compiled = gl.getShaderParameter(shader, gl.COMPILE_STATUS);
+    if (!compiled) {
+        const error = gl.getShaderInfoLog(shader);
+        console.log('Failed to compile shader: ' + error);
+        gl.deleteShader(shader);
+        return null;
+    }
+
+    return shader;
+}
+function createBuffer(data){  
+    // 生成缓存对象  
+    var buffer = gl.createBuffer();  
+    if (!buffer) {
+        console.log('Failed to create the buffer object');
+        return null;
+    }
+    // 绑定缓存  
+    gl.bindBuffer(gl.ARRAY_BUFFER, buffer);  
+    
+    // 向缓存中写入数据  
+    gl.bufferData(gl.ARRAY_BUFFER, data, gl.STATIC_DRAW);  
+    
+    // 将绑定的缓存设为无效  
+    // gl.bindBuffer(gl.ARRAY_BUFFER, null);  
+    
+    // 返回生成的buffer  
+    return buffer;
+} 
+function main() {
+    if (!gl) {
+        console.log('Failed to get the rendering context for WebGL');
+        return;
+    }
+
+    const program = createProgramBySource(gl, vs, fs);
+    if (!program) {
+        console.log('Failed to intialize shaders.');
+        return;
+    }
+    gl.useProgram(program);
+
+    /**
+     * 混合缓冲区(包括顶点，颜色)
+     */
+    var verticeColors=new Float32Array([
+            0.0,  1.0,  -2.0,  0.3,  1.0,  0.4, // The back green one
+        -0.5, -1.0,  -2.0,  0.3,  1.0,  0.4,
+            0.5, -1.0,  -2.0,  1.0,  0.4,  0.4, 
+
+            0.0,  1.0,  -1.0,  1.0,  1.0,  0.4, // The middle yellow one
+        -0.5, -1.0,  -1.0,  1.0,  1.0,  0.4,
+            0.5, -1.0,  -1.0,  1.0,  0.4,  0.4, 
+
+            0.0,  1.0,   0.0,  0.4,  0.4,  1.0,  // The front blue one 
+        -0.5, -1.0,   0.0,  0.4,  0.4,  1.0,
+            0.5, -1.0,   0.0,  1.0,  0.4,  0.4, 
+    ]);
+    // 创建缓冲区
+    if(!createBuffer(verticeColors)){
+        console.log('Failed to create the buffer object');
+        return;
+    }
+
+    // 每个元素的字节
+    var FSIZE = verticeColors.BYTES_PER_ELEMENT;
+    // 获取顶点位置
+    var a_Position = gl.getAttribLocation(program, 'a_Position');
+    // (地址,每个顶点分量的个数<1-4>,数据类型<整形，符点等>,是否归一化,指定相邻两个顶点间字节数<默认0>,指定缓冲区对象偏移字节数量<默认0>)
+    gl.vertexAttribPointer(a_Position, 3, gl.FLOAT, false, 6*FSIZE, 0);
+    // Enable the assignment to a_Position variable
+    gl.enableVertexAttribArray(a_Position);
+
+    // 获取a_Color变量的存储地址并赋值
+    var a_Color = gl.getAttribLocation(program, 'a_Color');
+    gl.vertexAttribPointer(a_Color, 3, gl.FLOAT, false, 6*FSIZE, 2*FSIZE);
+    gl.enableVertexAttribArray(a_Color);
+
+    var u_MvpMatrix = gl.getUniformLocation(program, 'u_MvpMatrix');
+    if(!u_MvpMatrix) { 
+        console.log('Failed to get the storage location of u_MvpMatrix');
+        return;
+    }
+    // 设置背景颜色
+    gl.clearColor(0.0, 0.0, 0.0, 1.0);
+    // 开启隐藏面消除
+    gl.enable(gl.DEPTH_TEST);
+
+    var modelMatrix = new Matrix4(); // 模型矩阵
+    var viewMatrix = new Matrix4();  // 视点矩阵
+    var projMatrix = new Matrix4();  // 投影矩阵
+    var mvpMatrix = new Matrix4();   // 用于相乘用
+    var angle=0;
+    // 执行动画
+    (function animate(){
+        // 旋转位移 等于绕原点Y旋转
+        modelMatrix.setRotate((angle++)%360,0,1,0);
+        modelMatrix.translate(1, 0, 1);
+        // (视点，观察目标点，上方向)
+        viewMatrix.setLookAt(-0.25, -0.25, 5, 0, 0, -100, 0, 1, 0);
+        // 投影矩阵(fov可视空间底面和顶面夹角<大于0>,近裁截面宽高比,近裁截面位置<大于0>,远裁截面位置<大于0> )
+        projMatrix.setPerspective(30, canvas.width/canvas.height, 1, 100);
+        // 矩阵相乘
+        mvpMatrix.set(projMatrix).multiply(viewMatrix).multiply(modelMatrix);
+        // 赋值
+        gl.uniformMatrix4fv(u_MvpMatrix, false, mvpMatrix.elements);
+
+
+        //清屏|清深度缓冲
+        gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+        // 启用多边形偏移，避免深度冲突
+        gl.enable(gl.POLYGON_OFFSET_FILL);
+
+        // (基本图形，第几个顶点，执行几次)，修改基本图形项可以生成点，线，三角形，矩形，扇形等
+        gl.drawArrays(gl.TRIANGLES, 0, 9);
+
+        //位移后，再将前面三个图形重新绘制
+        modelMatrix.translate(-2, 0, 0);
+        mvpMatrix.set(projMatrix).multiply(viewMatrix).multiply(modelMatrix);
+        gl.uniformMatrix4fv(u_MvpMatrix, false, mvpMatrix.elements);
+
+        //设置偏移量
+        gl.polygonOffset(1.0, 1.0);
+        gl.drawArrays(gl.TRIANGLES, 0, 9);   // Draw the triangles
+
+        requestAnimationFrame(animate);
+    }());
+}
+
+main();

@@ -1,0 +1,12 @@
+h3{
+    padding-left: 10px;
+}
+label{
+    display: inline-block;
+    width: 60px;
+    padding: 0 10px;
+}
+span{
+    display: inline-block;
+    width: 40px;
+}

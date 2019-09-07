@@ -1,113 +1,68 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
-<title>3d旋转</title>
-<link rel="stylesheet" href="../../css/pure-min.css">
-<link rel="stylesheet" href="../../css/fontello.css">
-<link rel="stylesheet" href="../css/style.css">
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0"><title>3D旋转</title><link rel="stylesheet" href="../css/main.css"><link rel="stylesheet" href="../css/fontello.css"><link rel="stylesheet" href="../css/style.css"></head><body><div class="content"><a class="github" href="https://github.com/edwardzhong"><img src="../img/github.png"></a><header class="header"><h1><a href="../index.html">Jeff Zhong's Demo</a></h1></header><div class="main grid"><a class="effect-list" href="../index.html">&larr;&nbsp;effect list</a><h2>3D旋转</h2><canvas id="canvas" style="background:#000;" width="600" height="400"></canvas></div><footer class="footer"><p> Copyright &copy; 2017 <a href="https://github.com/edwardzhong">Jeff Zhong</a></p></footer></div><script src="../js/util.js"></script><script src="../js/ball3d.js"></script><script>var canvas = document.getElementById("canvas"),
+	ctx = canvas.getContext("2d"),
+	W = canvas.width,
+	H = canvas.height,
+	mouse = captureMouse(canvas);
+(balls = []), (nums = 50), (fl = 300); //z轴深度
+// ctx.globalCompositeOperation = "source-over";
+// ctx.fillStyle='hsla(0,0%,30%,0.5)'
+ctx.strokeStyle = "#fff";
+ctx.lineWidth = 1;
+// ctx.translate(2/W,2/H);
+for (var i = 0; i < nums; i++) {
+	var r = random(5, 10),
+		color = randomColor(),
+		ball = new Ball3d(r, color);
+	ball.xpos = random(-300, 300);
+	ball.ypos = random(-300, 300);
+	ball.zpos = random(-300, 300);
+	balls.push(ball);
+}
+function RotateX(ball, angle) {
+	var pos = rotateX({ y: ball.ypos, z: ball.zpos }, angle);
+	ball.ypos = pos.y;
+	ball.zpos = pos.z;
+}
+function RotateY(ball, angle) {
+	var pos = rotateY({ x: ball.xpos, z: ball.zpos }, angle);
+	ball.xpos = pos.x;
+	ball.zpos = pos.z;
+}
 
-<style>
-    canvas{
-        background: #000;
-    }
-</style>
+function rotateZ(ball, angle) {
+	var pos = rotateZ({ x: ball.xpos, y: ball.ypos }, angle);
+	ball.xpos = pos.x;
+	ball.ypos = pos.y;
+}
 
-</head>
-<body>
-	<div class="content">
-		<a class="github" href="https://github.com/edwardzhong">
-			<img src="../img/github.png" alt="">
-		</a>
-		<header class="header">
-			<h1><a href="../index.html">Jeff Zhong's Demo</a></h1>
-		</header>
-		<div class="main grid">
-		<a class="effect-list" href="../index.html">&larr;&nbsp;effect list</a>
-		
-<h2>3d旋转</h2>
-<canvas id="canvas" width="600" height="400"></canvas>
- </div>
-		<footer class="footer">
-			<p>Copyright &copy; 2017 <a href="https://github.com/edwardzhong">Jeff Zhong</a></p>
-		</footer>
-	</div>
+function update(ball, i) {
+	var angleX = (mouse.x - W / 2) * 0.0001;
+	var angleY = (mouse.y - H / 2) * 0.0001;
+	RotateX(ball, angleY);
+	RotateY(ball, angleX);
+	// rotateZ(ball);
+}
+function draw(ball, i) {
+	if (ball.zpos > -fl) {
+		var scale = (fl + ball.zpos) / fl;
+		ball.scaleX = scale;
+		ball.scaleY = scale;
+		ball.x = W / 2 + ball.xpos;
+		ball.y = H / 2 + ball.ypos;
+		ball.visible = true;
+	} else {
+		ball.visible = false;
+	}
+	if (ball.visible) {
+		ball.draw(ctx);
+	}
+}
 
-<script src="../../js/canvas.min.js"></script>
-<script src="../../js/ball3d.js"></script>
-<script>
-     var canvas = document.getElementById('canvas'),
-        ctx = canvas.getContext('2d'),
-        W=canvas.width,
-        H=canvas.height,
-        mouse=CaptureMouse(canvas);
-        balls=[],
-        nums=50,
-        fl=300;//z轴深度
-    // ctx.globalCompositeOperation = "source-over";
-    // ctx.fillStyle='hsla(0,0%,30%,0.5)'
-    ctx.strokeStyle='#fff';
-    ctx.lineWidth=1;
-    // ctx.translate(2/W,2/H);
-    for(var i=0;i<nums;i++){
-        var r = Random(5,10),
-            color = RandomColor(),
-            ball = new Ball3d(r,color);
-        ball.xpos=Random(-300,300);
-        ball.ypos=Random(-300,300);
-        ball.zpos=Random(-300,300);
-        console.log(ball.xpos,ball.ypos,ball.zpos);
-        balls.push(ball);
-    }
-    function rotateX(ball,angle){
-        var pos=Rotates.rotateX({y:ball.ypos,z:ball.zpos},angle);
-        ball.ypos=pos.y;
-        ball.zpos=pos.z;
-    }
-    function rotateY(ball,angle){
-        var pos=Rotates.rotateY({x:ball.xpos,z:ball.zpos},angle);
-        ball.xpos=pos.x;
-        ball.zpos=pos.z;
-    }
-
-    function rotateZ(ball,angle){
-        var pos=Rotates.rotateZ({x:ball.xpos,y:ball.ypos},angle);
-        ball.xpos=pos.x;
-        ball.ypos=pos.y;
-    }
-
-    function update(ball,i){
-        var angleX=(mouse.x-W/2)*0.0001;
-        var angleY=(mouse.y-H/2)*0.0001;
-        rotateX(ball,angleY);
-        rotateY(ball,angleX);
-        // rotateZ(ball);
-    }
-    function draw(ball,i){
-        if(ball.zpos>-fl){
-            var scale=(fl+ball.zpos)/fl;
-            ball.scaleX=scale;
-            ball.scaleY=scale;
-            ball.x=W/2+ball.xpos;
-            ball.y=H/2+ball.ypos;
-            ball.visible=true;
-        } else {
-            ball.visible=false;
-        }
-        if(ball.visible){
-            ball.draw(ctx);
-        }
-    }
-
-    (function animate(){
-        ctx.clearRect(0,0,W,H);
-        balls.forEach(update);
-        balls.sort((a,b)=>a.zpos-b.zpos);
-        balls.forEach(draw);
-        requestAnimationFrame(animate);
-    }());
-</script>
-
-</body>
-</html>
+(function animate() {
+	ctx.clearRect(0, 0, W, H);
+	balls.forEach(update);
+	balls.sort((a, b) => a.zpos - b.zpos);
+	balls.forEach(draw);
+	requestAnimationFrame(animate);
+})();
+</script></body></html>
