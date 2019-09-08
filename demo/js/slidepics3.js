@@ -4,26 +4,10 @@ var lbtn = document.getElementById("leftBtn"),
 //轮播使用到的5张图片
 var configs = [
 		{ i: 2, css: "z-index:3;transform: translate3d(260px, 0, -30px)" },
-		{
-			i: 1,
-			css:
-				"z-index:2;transform-origin: left;transform: translate3d(-20px, 0, -60px) rotateY(5deg)"
-		},
-		{
-			i: 3,
-			css:
-				"z-index:2;transform-origin: right;transform: translate3d(540px, 0, -60px) rotateY(-5deg)"
-		},
-		{
-			i: 0,
-			css:
-				"z-index:1;transform-origin: left;transform: translate3d(-220px, 0, -70px) rotateY(5deg)"
-		},
-		{
-			i: 4,
-			css:
-				"z-index:1;transform-origin: right;transform: translate3d(740px, 0, -70px) rotateY(-5deg)"
-		}
+		{ i: 1, css: "z-index:2;transform-origin: left;transform: translate3d(-20px, 0, -60px) rotateY(5deg)" },
+		{ i: 3, css: "z-index:2;transform-origin: right;transform: translate3d(540px, 0, -60px) rotateY(-5deg)" },
+		{ i: 0, css: "z-index:1;transform-origin: left;transform: translate3d(-220px, 0, -70px) rotateY(5deg)" },
+		{ i: 4, css: "z-index:1;transform-origin: right;transform: translate3d(740px, 0, -70px) rotateY(-5deg)" }
 	],
 	//隐藏的图片
 	hiden = { css: "transform: translate3d(200px, 0, -100px)" };

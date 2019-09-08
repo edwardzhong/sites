@@ -28,8 +28,7 @@ function action() {
 		i = len - 1;
 	}
 	wrap.animate({ scrollLeft: i * w }, 600);
-	$(navs[i])
-		.addClass("active")
+	$(navs[i]).addClass("active")
 		.siblings(".active")
 		.removeClass("active");
 }
