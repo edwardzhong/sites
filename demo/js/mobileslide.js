@@ -61,11 +61,8 @@ function touchSlide() {
 			} else if (offset < 0) {
 				act = next >= len ? 0 : next;
 			}
-			lis[act].style.cssText =
-				"display:block;left:" + (offset < 0 ? "" : "-") + "100%;";
-			lis[curr].style[webkit + "transform"] = lis[act].style[
-				webkit + "transform"
-			] = "translate3d(" + offset + "px,0,0)";
+			lis[act].style.cssText = "display:block;left:" + (offset < 0 ? "" : "-") + "100%;";
+			lis[curr].style[webkit + "transform"] = lis[act].style[ webkit + "transform" ] = "translate3d(" + offset + "px,0,0)";
 		},
 		_touchRelease = function(e) {
 			if (isLock) {
@@ -76,9 +73,7 @@ function touchSlide() {
 				//小于100重置
 				$(lis[curr]).addClass("restore");
 				$(lis[act]).addClass("restore");
-				lis[curr].style[webkit + "transform"] = lis[act].style[
-					webkit + "transform"
-				] = "translate3d(0,0,0)";
+				lis[curr].style[webkit + "transform"] = lis[act].style[ webkit + "transform" ] = "translate3d(0,0,0)";
 				setTimeout(function() {
 					$(lis[curr]).removeClass("restore");
 					$(lis[act]).removeClass("restore");
@@ -98,9 +93,7 @@ function touchSlide() {
 					$(lis[curr]).removeClass("moving");
 					$(lis[act]).removeClass("moving");
 					lis[curr].style.cssText = "display:none;left:0;";
-					lis[curr].style[webkit + "transform"] = lis[act].style[
-						webkit + "transform"
-					] = "translate3d(0,0,0)";
+					lis[curr].style[webkit + "transform"] = lis[act].style[ webkit + "transform" ] = "translate3d(0,0,0)";
 					lis[act].style.left = 0;
 					curr = act;
 					prev = curr - 1;
@@ -121,22 +114,16 @@ function touchSlide() {
 		_next = function() {
 			act = next >= len ? 0 : next;
 			lis[act].style.cssText = "display:block;left:100%;";
-			lis[curr].style[webkit + "transform"] = lis[act].style[
-				webkit + "transform"
-			] = "translate3d(0,0,0)";
+			lis[curr].style[webkit + "transform"] = lis[act].style[ webkit + "transform" ] = "translate3d(0,0,0)";
 			setTimeout(function() {
 				$(lis[curr]).addClass("moving");
 				$(lis[act]).addClass("moving");
-				lis[curr].style[webkit + "transform"] = lis[act].style[
-					webkit + "transform"
-				] = "translate3d(-100%,0,0)";
+				lis[curr].style[webkit + "transform"] = lis[act].style[ webkit + "transform" ] = "translate3d(-100%,0,0)";
 				setTimeout(function() {
 					$(lis[curr]).removeClass("moving");
 					$(lis[act]).removeClass("moving");
 					lis[curr].style.cssText = "display:none;left:0;";
-					lis[curr].style[webkit + "transform"] = lis[act].style[
-						webkit + "transform"
-					] = "translate3d(0,0,0)";
+					lis[curr].style[webkit + "transform"] = lis[act].style[ webkit + "transform" ] = "translate3d(0,0,0)";
 					lis[act].style.left = 0;
 					curr = act;
 					prev = curr - 1;
