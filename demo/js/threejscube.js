@@ -90,8 +90,10 @@ function render() {
 }
 
 function easeInOut(t, b, c, d) {
-    if ((t /= d / 2) < 1) return c / 2 * t * t * t * t + b;
-    return -c / 2 * ((t -= 2) * t * t * t - 2) + b;
+    // if ((t /= d / 2) < 1) return c / 2 * t * t * t * t + b;
+    // return -c / 2 * ((t -= 2) * t * t * t - 2) + b;
+    if (typeof s == "undefined") s = 1.70158;
+    return c * ((t = t / d - 1) * t * ((s + 1) * t + s) + 1) + b;
 }
 
 function rotate(dx,dy){
