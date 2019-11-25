@@ -222,14 +222,10 @@ class Graph {
 		codes.push("ctx.translate(" + this.x + "," + this.y + ");"); //translate到中心点，方便使用
 		this.points.forEach((p, i) => {
 			if (i == 0) {
-				codes.push(
-					"ctx.moveTo(" + (p.x - this.x) + "," + (p.y - this.y) + ");"
-				);
+				codes.push( "ctx.moveTo(" + (p.x - this.x) + "," + (p.y - this.y) + ");" );
 				// codes.push('ctx.moveTo('+(p.x)+','+(p.y)+');');
 			} else {
-				codes.push(
-					"ctx.lineTo(" + (p.x - this.x) + "," + (p.y - this.y) + ");"
-				);
+				codes.push( "ctx.lineTo(" + (p.x - this.x) + "," + (p.y - this.y) + ");" );
 				// codes.push('ctx.lineTo('+(p.x)+','+(p.y)+');');
 			}
 		});
@@ -339,18 +335,9 @@ class Dash extends Line {
 						Math.sqrt(deltaX * deltaX + deltaY * deltaY) / dashLen
 					);
 				for (var j = 1; j < dashNums; j++) {
-					codes.push(
-						"ctx." +
-							(j % 2 == 0 ? "moveTo" : "lineTo") +
-							"(" +
-							Math.floor(
-								points[i - 1].x + (deltaX / dashNums) * j
-							) +
-							"," +
-							Math.floor(
-								points[i - 1].y + (deltaY / dashNums) * j
-							) +
-							");"
+					codes.push( "ctx." + (j % 2 == 0 ? "moveTo" : "lineTo") +
+							"(" + Math.floor( points[i - 1].x + (deltaX / dashNums) * j ) + "," 
+							+ Math.floor( points[i - 1].y + (deltaY / dashNums) * j ) + ");"
 					);
 				}
 				codes.push("ctx.stroke();");
@@ -367,13 +354,7 @@ class Bezier extends Line {
 		this.name = "三次贝塞尔曲线";
 	}
 	initUpdate(start, end) {
-		var a =
-				Math.round(
-					Math.sqrt(
-						Math.pow(end.x - start.x, 2) +
-							Math.pow(end.y - start.y, 2)
-					)
-				) / 2,
+		var a = Math.round( Math.sqrt( Math.pow(end.x - start.x, 2) + Math.pow(end.y - start.y, 2) ) ) / 2,
 			x1 = start.x + (end.x - start.x) / 2,
 			y1 = start.y - a,
 			y2 = end.y + a;
@@ -442,13 +423,7 @@ class Quadratic extends Line {
 		this.name = "二次贝塞尔曲线";
 	}
 	initUpdate(start, end) {
-		var a =
-				Math.round(
-					Math.sqrt(
-						Math.pow(end.x - start.x, 2) +
-							Math.pow(end.y - start.y, 2)
-					)
-				) / 2,
+		var a = Math.round( Math.sqrt( Math.pow(end.x - start.x, 2) + Math.pow(end.y - start.y, 2) ) ) / 2,
 			x1 = start.x + (end.x - start.x) / 2,
 			y1 = start.y - a * 1.5;
 		this.points[1] = { x: end.x, y: end.y };
@@ -496,9 +471,7 @@ class Quadratic extends Line {
 		codes.push("ctx.strokeStyle='" + this.strokeStyle + "';");
 		codes.push("ctx.beginPath();");
 		codes.push(`ctx.moveTo(${this.points[0].x},${this.points[0].y});`);
-		codes.push(
-			`ctx.quadraticCurveTo(${this.points[2].x},${this.points[2].y},${this.points[1].x},${this.points[1].y});`
-		);
+		codes.push( `ctx.quadraticCurveTo(${this.points[2].x},${this.points[2].y},${this.points[1].x},${this.points[1].y});` );
 		codes.push("ctx.stroke();");
 		return codes.join("\n");
 	}
@@ -547,11 +520,7 @@ class Polygon extends Graph {
 	}
 	update(i, pos) {
 		if (i == 10000) {
-			var point = this.createControlPoint(
-				{ x: this.x, y: this.y },
-				pos,
-				-4
-			);
+			var point = this.createControlPoint( { x: this.x, y: this.y }, pos, -4 );
 			this.cPoints[0] = pos;
 			this.createPoints({ x: this.x, y: this.y }, point);
 		} else if (i == 9999) {
@@ -674,32 +643,21 @@ class Star extends Polygon {
 				angle = Math.atan2(pos.y - this.y, pos.x - this.x),
 				sin = Math.sin(ang + angle),
 				cos = Math.cos(ang + angle),
-				a = Math.sqrt(
-					Math.pow(pos.x - this.x, 2) + Math.pow(pos.y - this.y, 2)
-				);
+				a = Math.sqrt( Math.pow(pos.x - this.x, 2) + Math.pow(pos.y - this.y, 2) );
 
 			this.cPoints[1] = {
 				x: (a * this.size + 10) * cos + this.x,
 				y: (a * this.size + 10) * sin + this.y
 			};
-			var point = this.createControlPoint(
-				{ x: this.x, y: this.y },
-				pos,
-				-4
-			); //第一个顶点坐标
+			var point = this.createControlPoint( { x: this.x, y: this.y }, pos, -4 ); //第一个顶点坐标
 			this.cPoints[0] = pos; //第一个选择控制点坐标
 			this.createPoints({ x: this.x, y: this.y }, point); //更新所有顶点
 		} else if (i == 10001) {
 			var x1 = this.points[1].x - this.x,
 				y1 = this.points[1].y - this.y,
 				angle = Math.atan2(y1, x1),
-				a = Math.sqrt(
-					Math.pow(pos.x - this.x, 2) + Math.pow(pos.y - this.y, 2)
-				),
-				b = Math.sqrt(
-					Math.pow(this.points[0].x - this.x, 2) +
-						Math.pow(this.points[0].y - this.y, 2)
-				);
+				a = Math.sqrt( Math.pow(pos.x - this.x, 2) + Math.pow(pos.y - this.y, 2) ),
+				b = Math.sqrt( Math.pow(this.points[0].x - this.x, 2) + Math.pow(this.points[0].y - this.y, 2) );
 
 			var x = a * Math.cos(angle),
 				y = a * Math.sin(angle);
@@ -776,20 +734,12 @@ class Round extends Graph {
 			this.y = pos.y;
 		} else {
 			this.points[0] = pos;
-			this.radius = Math.round(
-				Math.sqrt(
-					Math.pow(pos.x - this.x, 2) + Math.pow(pos.y - this.y, 2)
-				)
-			);
+			this.radius = Math.round( Math.sqrt( Math.pow(pos.x - this.x, 2) + Math.pow(pos.y - this.y, 2) ) );
 		}
 	}
 	initUpdate(start, end) {
 		this.points[0] = end;
-		this.radius = Math.round(
-			Math.sqrt(
-				Math.pow(end.x - start.x, 2) + Math.pow(end.y - start.y, 2)
-			)
-		);
+		this.radius = Math.round( Math.sqrt( Math.pow(end.x - start.x, 2) + Math.pow(end.y - start.y, 2) ) );
 	}
 	createPath(ctx) {
 		ctx.beginPath();
@@ -803,15 +753,7 @@ class Round extends Graph {
 			codes.push("ctx.fillStyle='" + this.fillStyle + "';");
 		}
 		codes.push("ctx.beginPath();");
-		codes.push(
-			"ctx.arc(" +
-				this.x +
-				"," +
-				this.y +
-				"," +
-				this.radius +
-				",0,Math.PI*2,false);"
-		);
+		codes.push( "ctx.arc(" + this.x + "," + this.y + "," + this.radius + ",0,Math.PI*2,false);" );
 		codes.push("ctx.stroke();");
 		if (this.isFill) {
 			codes.push("ctx.fill();");
@@ -850,12 +792,7 @@ class Ellipse extends Graph {
 	}
 	initUpdate(start, end) {
 		this.points[0] = end;
-		this.a = Math.round(
-			Math.sqrt(
-				Math.pow(this.points[0].x - start.x, 2) +
-					Math.pow(this.points[0].y - start.y, 2)
-			)
-		);
+		this.a = Math.round( Math.sqrt( Math.pow(this.points[0].x - start.x, 2) + Math.pow(this.points[0].y - start.y, 2) ) );
 		this.b = this.a / 2;
 		this.angle = Math.atan2(
 			this.points[0].y - this.y,
@@ -876,12 +813,7 @@ class Ellipse extends Graph {
 		} else {
 			this.points[i] = pos;
 			if (i == 0) {
-				this.a = Math.round(
-					Math.sqrt(
-						Math.pow(this.points[0].x - this.x, 2) +
-							Math.pow(this.points[0].y - this.y, 2)
-					)
-				);
+				this.a = Math.round( Math.sqrt( Math.pow(this.points[0].x - this.x, 2) + Math.pow(this.points[0].y - this.y, 2) ) );
 				this.angle = Math.atan2(
 					this.points[0].y - this.y,
 					this.points[0].x - this.x
@@ -970,66 +902,10 @@ class Ellipse extends Graph {
 		codes.push("ctx.rotate(" + this.angle + ");");
 		codes.push("ctx.beginPath();");
 		codes.push("ctx.moveTo(" + (x - a) + ", " + y + ");");
-		codes.push(
-			"ctx.bezierCurveTo(" +
-				(x - a) +
-				", " +
-				(y - oy) +
-				", " +
-				(x - ox) +
-				", " +
-				(y - b) +
-				", " +
-				x +
-				"," +
-				(y - b) +
-				");"
-		);
-		codes.push(
-			"ctx.bezierCurveTo(" +
-				(x + ox) +
-				", " +
-				(y - b) +
-				", " +
-				(x + a) +
-				", " +
-				(y - oy) +
-				", " +
-				(x + a) +
-				"," +
-				y +
-				");"
-		);
-		codes.push(
-			"ctx.bezierCurveTo(" +
-				(x + a) +
-				", " +
-				(y + oy) +
-				", " +
-				(x + ox) +
-				", " +
-				(y + b) +
-				", " +
-				x +
-				", " +
-				(y + b) +
-				");"
-		);
-		codes.push(
-			"ctx.bezierCurveTo(" +
-				(x - ox) +
-				", " +
-				(y + b) +
-				", " +
-				(x - a) +
-				", " +
-				(y + oy) +
-				", " +
-				(x - a) +
-				", " +
-				y +
-				");"
-		);
+		codes.push( "ctx.bezierCurveTo(" + (x - a) + ", " + (y - oy) + ", " + (x - ox) + ", " + (y - b) + ", " + x + "," + (y - b) + ");" );
+		codes.push( "ctx.bezierCurveTo(" + (x + ox) + ", " + (y - b) + ", " + (x + a) + ", " + (y - oy) + ", " + (x + a) + "," + y + ");" );
+		codes.push( "ctx.bezierCurveTo(" + (x + a) + ", " + (y + oy) + ", " + (x + ox) + ", " + (y + b) + ", " + x + ", " + (y + b) + ");" );
+		codes.push( "ctx.bezierCurveTo(" + (x - ox) + ", " + (y + b) + ", " + (x - a) + ", " + (y + oy) + ", " + (x - a) + ", " + y + ");" );
 		codes.push("ctx.closePath();");
 		codes.push("ctx.stroke();");
 		if (this.isFill) {
