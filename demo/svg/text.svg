@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="300" height="200">
+  <g>
+    <title> 文字路径 </title>
+    <text fill="hsla(260,80%,50%,1)" x="10" y="40" font-size="30"> I Love SVG </text>
+    <path id="path" d="M 10 100 C 100 0 150 300 250 100" fill="none" stroke="#555"/>
+    <text x="10" y="100" stroke="hsl(280,100%,50%)">
+      <textPath xlink:href="#path">I Love SVG I Love SVG I Love SVG</textPath>
+    </text>
+  </g>
+</svg>
