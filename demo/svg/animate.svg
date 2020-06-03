@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300">
+    <g id="pathAnimate">
+        <title> 路径动画 </title>
+        <path stroke="hsl(0,0%,60%)" d="M 10 150 Q 50 0 150 150 T 350 150Z" stroke-width="2" fill="none"/>
+        <circle cx="0" cy="0" r="8" stroke-width="1" stroke="hsl(300,10%,40%)" fill="hsl(300,100%,50%)">
+            <animateMotion path="M 10 150 Q 50 0 150 150 T 350 150Z" dur="4s" repeatCount="indefinite"/>
+        </circle>
+    </g>
+</svg>

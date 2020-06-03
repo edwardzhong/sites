@@ -1,0 +1,14 @@
+    <svg xmlns="http://www.w3.org/2000/svg" width="400" height="200">
+      <g fill="none" stroke-width="10">
+        <circle cx="100" cy="60" r="40" stroke="#ccc" />
+        <circle cx="100" cy="60" r="40" stroke="hsl(160,80%,50%)" stroke-dasharray="250.921" stroke-dashoffset="250.921">
+            <animate attributeName="stroke-dashoffset" dur="2s" to="0" repeatCount="indefinite" />
+        </circle>
+      </g>
+      <g stroke="hsla(200, 80%, 50%, 0.8)" >
+        <text x="200" y="60" font-size="30" fill="hsla(200, 80%, 50%, 0.8)">Click Me</text>
+        <rect x="185" y="25" width="160" height="45" rx="4" ry="4" fill="none" stroke-width="2" stroke-dasharray="402.4917" stroke-dashoffset="402.4917">
+            <animate attributeName="stroke-dashoffset" dur="1.5" to="0" repeatCount="indefinite" />
+        </rect>
+      </g>
+    </svg>
